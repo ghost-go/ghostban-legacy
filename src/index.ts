@@ -1,2 +1,2 @@
-export * from './GhostBan';
+export * from './ghostban';
 export * from './utils';

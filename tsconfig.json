@@ -8,6 +8,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
-    "outDir": "build"
-  }
+    "outDir": "build",
+  },
 }

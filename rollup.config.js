@@ -56,7 +56,6 @@ export default [
       }),
     ],
   },
-
   // ES
   {
     input: inputFileName,
