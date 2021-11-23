@@ -29,7 +29,6 @@ declare type GhostBanOptionsParams = {
     coordinates?: boolean;
 };
 export declare class GhostBan {
-    #private;
     options: GhostBanOptions;
     dom: HTMLElement | undefined;
     canvas?: HTMLCanvasElement;
@@ -51,5 +50,17 @@ export declare class GhostBan {
     setInteractive(value: boolean): void;
     setTheme(theme: Theme): void;
     render(mat?: Matrix, marks?: Matrix, nextMove?: any): void;
+    clearCanvas: () => void;
+    drawMarks: (matrix: Matrix) => void;
+    drawBan: () => void;
+    drawBoardLine: (visibleArea?: number[][]) => void;
+    drawStars: (visibleArea?: number[][]) => void;
+    drawCoordinates: (visibleArea?: number[][]) => void;
+    calcSpaceAndPadding: () => {
+        space: number;
+        scaledPadding: number;
+    };
+    drawCursor: (visibleArea: number[][]) => void;
+    drawStones: (matrix: Matrix) => void;
 }
 export {};

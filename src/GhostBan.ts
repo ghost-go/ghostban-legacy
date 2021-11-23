@@ -190,7 +190,7 @@ export class GhostBan {
     dom.appendChild(canvas);
 
     const {interactive, padding} = this.options;
-    const {space} = this.#calcSpaceAndPadding();
+    const {space} = this.calcSpaceAndPadding();
 
     this.setInteractive(interactive);
 
@@ -221,7 +221,7 @@ export class GhostBan {
     if (!canvas) return;
     this.options.interactive = value;
     const {padding} = this.options;
-    const {space} = this.#calcSpaceAndPadding();
+    const {space} = this.calcSpaceAndPadding();
     const onMouseMove = (e: MouseEvent) => {
       const point = this.transMat
         .inverse()
@@ -301,7 +301,7 @@ export class GhostBan {
     const canvas = this.canvas;
     if (canvas) {
       this.resize();
-      this.#clearCanvas();
+      this.clearCanvas();
       const ctx = canvas.getContext('2d');
 
       let leftMost: number = boardSize - 1;
@@ -370,22 +370,22 @@ export class GhostBan {
         }
       }
 
-      this.#drawBan();
-      this.#drawBoardLine(visibleArea);
-      this.#drawStars(visibleArea);
+      this.drawBan();
+      this.drawBoardLine(visibleArea);
+      this.drawStars(visibleArea);
       if (interactive) {
-        this.#drawCursor(visibleArea);
+        this.drawCursor(visibleArea);
       }
       if (coordinates) {
-        this.#drawCoordinates(visibleArea);
+        this.drawCoordinates(visibleArea);
       }
-      this.#drawStones(this.mat);
-      this.#drawMarks(this.marks);
+      this.drawStones(this.mat);
+      this.drawMarks(this.marks);
       // ctx?.restore();
     }
   }
 
-  #clearCanvas = () => {
+  clearCanvas = () => {
     if (this.canvas) {
       const ctx = this.canvas.getContext('2d');
       if (ctx) {
@@ -394,14 +394,14 @@ export class GhostBan {
     }
   };
 
-  #drawMarks = (matrix: Matrix) => {
+  drawMarks = (matrix: Matrix) => {
     const canvas = this.canvas;
     if (canvas) {
       forEach(matrix, (value, index) => {
         if (value !== 0) {
           const ctx = canvas.getContext('2d');
           if (ctx) {
-            const {space, scaledPadding} = this.#calcSpaceAndPadding();
+            const {space, scaledPadding} = this.calcSpaceAndPadding();
             const x = scaledPadding + index[0] * space;
             const y = scaledPadding + index[1] * space;
             ctx.beginPath();
@@ -421,7 +421,7 @@ export class GhostBan {
     }
   };
 
-  #drawBan = () => {
+  drawBan = () => {
     const {canvas} = this;
     const {theme} = this.options;
     if (canvas) {
@@ -456,7 +456,7 @@ export class GhostBan {
     }
   };
 
-  #drawBoardLine = (
+  drawBoardLine = (
     visibleArea = [
       [0, 18],
       [0, 18],
@@ -465,7 +465,7 @@ export class GhostBan {
     if (!this.canvas) return;
     const ctx = this.canvas.getContext('2d');
     if (ctx) {
-      const {space, scaledPadding} = this.#calcSpaceAndPadding();
+      const {space, scaledPadding} = this.calcSpaceAndPadding();
 
       ctx.lineWidth = 1 * devicePixelRatio;
       ctx.fillStyle = '#000000';
@@ -494,7 +494,7 @@ export class GhostBan {
     }
   };
 
-  #drawStars = (
+  drawStars = (
     visibleArea = [
       [0, 18],
       [0, 18],
@@ -503,7 +503,7 @@ export class GhostBan {
     if (!this.canvas) return;
     const ctx = this.canvas.getContext('2d');
     if (ctx) {
-      const {space, scaledPadding} = this.#calcSpaceAndPadding();
+      const {space, scaledPadding} = this.calcSpaceAndPadding();
       // Drawing star
       ctx.stroke();
       [3, 9, 15].forEach(i => {
@@ -531,7 +531,7 @@ export class GhostBan {
     }
   };
 
-  #drawCoordinates = (
+  drawCoordinates = (
     visibleArea = [
       [0, 18],
       [0, 18],
@@ -540,7 +540,7 @@ export class GhostBan {
     const canvas = this.canvas;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const {space, scaledPadding} = this.#calcSpaceAndPadding();
+    const {space, scaledPadding} = this.calcSpaceAndPadding();
     if (ctx) {
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
@@ -565,7 +565,7 @@ export class GhostBan {
     }
   };
 
-  #calcSpaceAndPadding = () => {
+  calcSpaceAndPadding = () => {
     let space = 0;
     let scaledPadding = 0;
     if (this.canvas) {
@@ -578,12 +578,12 @@ export class GhostBan {
     return {space, scaledPadding};
   };
 
-  #drawCursor = (visibleArea: number[][]) => {
+  drawCursor = (visibleArea: number[][]) => {
     const canvas = this.canvas;
     if (canvas) {
       const {padding} = this.options;
       const ctx = canvas.getContext('2d');
-      const {space} = this.#calcSpaceAndPadding();
+      const {space} = this.calcSpaceAndPadding();
 
       const [idx, idy] = this.cursor;
       if (idx < visibleArea[0][0] || idx > visibleArea[0][1]) return;
@@ -619,7 +619,7 @@ export class GhostBan {
     }
   };
 
-  #drawStones = (matrix: Matrix) => {
+  drawStones = (matrix: Matrix) => {
     const canvas = this.canvas;
     const {theme} = this.options;
     if (canvas) {
@@ -627,7 +627,7 @@ export class GhostBan {
         if (value !== 0) {
           const ctx = canvas.getContext('2d');
           if (ctx) {
-            const {space, scaledPadding} = this.#calcSpaceAndPadding();
+            const {space, scaledPadding} = this.calcSpaceAndPadding();
             const x = scaledPadding + index[0] * space;
             const y = scaledPadding + index[1] * space;
 
