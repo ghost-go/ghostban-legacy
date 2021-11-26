@@ -1,5 +1,6 @@
-import {matrix, zeros, forEach, Matrix} from 'mathjs';
+import {matrix, zeros, forEach, Matrix, resize} from 'mathjs';
 import {A1_LETTERS, A1_NUMBERS} from './const';
+import {Theme, Ki} from './types';
 
 import SubduedBoard from './assets/images/theme/subdued/board.png';
 import SubduedWhite from './assets/images/theme/subdued/white.png';
@@ -39,16 +40,6 @@ let devicePixelRatio = 1.0;
 if (typeof window !== 'undefined') {
   devicePixelRatio = window.devicePixelRatio;
   // browser code
-}
-
-export enum Theme {
-  BlackAndWhite = 'Black&White',
-  Flat = 'Flat',
-  Subdued = 'Subdued',
-  ShellStone = 'Shell',
-  SlateAndShell = 'SlateAndShell',
-  Walnut = 'Walnet',
-  Photorealistic = 'Photorealistic',
 }
 
 const Resources = {
@@ -130,7 +121,7 @@ export class GhostBan {
     white: HTMLImageElement[];
     black: HTMLImageElement[];
   };
-  nextMove: number;
+  private _turn: Ki;
   cursor: [number, number];
   mat: Matrix;
   marks: Matrix;
@@ -146,7 +137,7 @@ export class GhostBan {
     };
     this.mat = matrix(zeros([19, 19]));
     this.marks = matrix(zeros([19, 19]));
-    this.nextMove = 1;
+    this._turn = Ki.Black;
     this.cursor = [18, 0];
     this.maxhv = this.options.boardSize;
     this.transMat = new DOMMatrix();
@@ -157,6 +148,10 @@ export class GhostBan {
         ...options,
       };
     }
+  }
+
+  setTurn(turn: Ki) {
+    this._turn = turn;
   }
 
   resize() {
@@ -294,7 +289,7 @@ export class GhostBan {
     }
   }
 
-  render(mat?: Matrix, marks?: Matrix, nextMove?: any) {
+  render(mat?: Matrix, marks?: Matrix) {
     if (mat) this.mat = mat;
     if (marks) this.marks = marks;
     const {boardSize, zoom, extend, interactive, coordinates} = this.options;
@@ -593,27 +588,20 @@ export class GhostBan {
       if (ctx) {
         const size = space * 0.4;
         ctx.save();
-        if (this.nextMove === 1) {
-          ctx.beginPath();
-          ctx.arc(x, y, size, 0, 2 * Math.PI, true);
-          ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, 2 * Math.PI, true);
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.6;
+        if (this._turn === Ki.Black) {
           ctx.strokeStyle = '#000';
-          ctx.globalAlpha = 0.6;
           ctx.fillStyle = '#000';
-          ctx.fill();
-          ctx.stroke();
-          ctx.globalAlpha = 1;
-        } else {
-          ctx.beginPath();
-          ctx.arc(x, y, size, 0, 2 * Math.PI, true);
-          ctx.lineWidth = 1;
+        } else if (this._turn === Ki.White) {
           ctx.strokeStyle = '#FFF';
-          ctx.globalAlpha = 0.6;
           ctx.fillStyle = '#FFF';
-          ctx.fill();
-          ctx.stroke();
-          ctx.globalAlpha = 1;
         }
+        ctx.fill();
+        ctx.stroke();
+        ctx.globalAlpha = 1;
         ctx.restore();
       }
     }

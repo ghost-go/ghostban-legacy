@@ -1,13 +1,5 @@
 import { Matrix } from 'mathjs';
-export declare enum Theme {
-    BlackAndWhite = "Black&White",
-    Flat = "Flat",
-    Subdued = "Subdued",
-    ShellStone = "Shell",
-    SlateAndShell = "SlateAndShell",
-    Walnut = "Walnet",
-    Photorealistic = "Photorealistic"
-}
+import { Theme, Ki } from './types';
 export declare type GhostBanOptions = {
     boardSize: number;
     size?: number;
@@ -37,19 +29,20 @@ export declare class GhostBan {
         white: HTMLImageElement[];
         black: HTMLImageElement[];
     };
-    nextMove: number;
+    private _turn;
     cursor: [number, number];
     mat: Matrix;
     marks: Matrix;
     maxhv: number;
     transMat: DOMMatrix;
     constructor(options?: GhostBanOptionsParams);
+    setTurn(turn: Ki): void;
     resize(): void;
     init(dom: HTMLElement): void;
     setOptions(options: GhostBanOptionsParams): void;
     setInteractive(value: boolean): void;
     setTheme(theme: Theme): void;
-    render(mat?: Matrix, marks?: Matrix, nextMove?: any): void;
+    render(mat?: Matrix, marks?: Matrix): void;
     clearCanvas: () => void;
     drawMarks: (matrix: Matrix) => void;
     drawBan: () => void;
