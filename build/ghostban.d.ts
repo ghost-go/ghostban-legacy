@@ -7,7 +7,7 @@ export declare type GhostBanOptions = {
     zoom?: boolean;
     extend: number;
     theme?: Theme;
-    coordinates: boolean;
+    coordinate: boolean;
     interactive: boolean;
 };
 declare type GhostBanOptionsParams = {
@@ -18,7 +18,7 @@ declare type GhostBanOptionsParams = {
     extend?: number;
     theme?: Theme;
     interactive?: boolean;
-    coordinates?: boolean;
+    coordinate?: boolean;
 };
 export declare class GhostBan {
     options: GhostBanOptions;
@@ -48,7 +48,7 @@ export declare class GhostBan {
     drawBan: () => void;
     drawBoardLine: (visibleArea?: number[][]) => void;
     drawStars: (visibleArea?: number[][]) => void;
-    drawCoordinates: (visibleArea?: number[][]) => void;
+    drawCoordinate: (visibleArea?: number[][]) => void;
     calcSpaceAndPadding: () => {
         space: number;
         scaledPadding: number;

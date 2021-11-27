@@ -90,7 +90,7 @@ export type GhostBanOptions = {
   zoom?: boolean;
   extend: number;
   theme?: Theme;
-  coordinates: boolean;
+  coordinate: boolean;
   interactive: boolean;
 };
 
@@ -102,7 +102,7 @@ type GhostBanOptionsParams = {
   extend?: number;
   theme?: Theme;
   interactive?: boolean;
-  coordinates?: boolean;
+  coordinate?: boolean;
 };
 
 export class GhostBan {
@@ -111,7 +111,7 @@ export class GhostBan {
     padding: 10,
     extend: 2,
     interactive: false,
-    coordinates: true,
+    coordinate: true,
     // matrix: matrix(math.ones([19, 19])),
   };
   dom: HTMLElement | undefined;
@@ -292,7 +292,7 @@ export class GhostBan {
   render(mat?: Matrix, marks?: Matrix) {
     if (mat) this.mat = mat;
     if (marks) this.marks = marks;
-    const {boardSize, zoom, extend, interactive, coordinates} = this.options;
+    const {boardSize, zoom, extend, interactive, coordinate} = this.options;
     const canvas = this.canvas;
     if (canvas) {
       this.resize();
@@ -371,8 +371,8 @@ export class GhostBan {
       if (interactive) {
         this.drawCursor(visibleArea);
       }
-      if (coordinates) {
-        this.drawCoordinates(visibleArea);
+      if (coordinate) {
+        this.drawCoordinate(visibleArea);
       }
       this.drawStones(this.mat);
       this.drawMarks(this.marks);
@@ -526,7 +526,7 @@ export class GhostBan {
     }
   };
 
-  drawCoordinates = (
+  drawCoordinate = (
     visibleArea = [
       [0, 18],
       [0, 18],
