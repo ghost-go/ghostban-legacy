@@ -2,7 +2,7 @@ import _ from 'lodash';
 // import JsFeat from 'jsfeat';
 import * as Const from './const';
 
-export const sgfToPosition = (str: any) => {
+export const sgfToPos = (str: any) => {
   const ki = str[0] === 'B' ? 1 : -1;
   const tempStr = /\[(.*)\]/.exec(str);
   if (tempStr) {
@@ -27,6 +27,15 @@ export const a1ToSGF = (str: any, type = 'B', offset = 0) => {
   const iny = Const.A1_NUMBERS.indexOf(parseInt(str.substr(1), 0)) - offset;
   const sgf = `${type}[${Const.SGF_LETTERS[inx]}${Const.SGF_LETTERS[iny]}]`;
   return sgf;
+};
+
+export const posToSgf = (x: number, y: number, ki: number) => {
+  const ax = Const.SGF_LETTERS[x];
+  const ay = Const.SGF_LETTERS[y];
+  if (ki === 0) return '';
+  if (ki === 1) return `B[${ax}${ay}]`;
+  if (ki === -1) return `W[${ax}${ay}]`;
+  return '';
 };
 
 export const convertStoneTypeToString = (type: any) => (type === 1 ? 'B' : 'W');

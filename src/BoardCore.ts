@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import {Matrix} from 'mathjs';
-import {sgfToPosition} from './helper';
+import {sgfToPos} from './helper';
 
 let liberties = 0;
 let recursionPath: string[] = [];
@@ -162,7 +162,7 @@ export function showKi(array: Matrix, steps: string[], isPonnuki = true) {
       x: number;
       y: number;
       ki: number;
-    } = sgfToPosition(str);
+    } = sgfToPos(str);
     if (isPonnuki) {
       if (canMove(newMat, x, y, ki)) {
         newMat.set([x, y], ki);

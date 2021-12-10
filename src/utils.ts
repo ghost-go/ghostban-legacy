@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import {Matrix, forEach} from 'mathjs';
-import {sgfToPosition} from './helper';
+import {sgfToPos} from './helper';
 
 const GRID = 19;
 let liberties = 0;
@@ -167,7 +167,7 @@ export function showKi(mat: Matrix, steps: string[], isPonnuki = true) {
       x: number;
       y: number;
       ki: number;
-    } = sgfToPosition(str);
+    } = sgfToPos(str);
     if (isPonnuki) {
       if (canMove(newMat, x, y, ki)) {
         newMat.set([x, y], ki);
