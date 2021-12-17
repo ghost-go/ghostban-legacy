@@ -10,6 +10,7 @@
   "license": "MIT",
   "scripts": {
     "build": "rollup -c && tsc --emitDeclarationOnly",
+    "watch": "rollup -c -w",
     "lint": "gts lint",
     "test": "jest",
     "clean": "gts clean",
