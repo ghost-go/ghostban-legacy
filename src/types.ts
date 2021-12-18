@@ -13,3 +13,11 @@ export enum Theme {
   Walnut = 'Walnet',
   Photorealistic = 'Photorealistic',
 }
+
+export enum Center {
+  TopRight = 'tr',
+  TopLeft = 'tl',
+  BottomLeft = 'bl',
+  BottomRight = 'br',
+  Center = 'c',
+}

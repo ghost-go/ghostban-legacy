@@ -34,6 +34,7 @@ import WalnutWhite from './assets/images/theme/walnut/white.png';
 import PhotorealisticBoard from './assets/images/theme/photorealistic/board.png';
 import PhotorealisticBlack from './assets/images/theme/photorealistic/black.png';
 import PhotorealisticWhite from './assets/images/theme/photorealistic/white.png';
+import {calcCenter, calcVisibleArea, Center} from '.';
 
 // const devicePixelRatio = window.devicePixelRatio;
 let devicePixelRatio = 1.0;
@@ -299,65 +300,41 @@ export class GhostBan {
       this.clearCanvas();
       const ctx = canvas.getContext('2d');
 
-      let leftMost: number = boardSize - 1;
-      let rightMost = 0;
-      let topMost: number = boardSize - 1;
-      let bottomMost = 0;
-      forEach(this.mat, (value: number, index: number[]) => {
-        if (value !== 0) {
-          if (leftMost > index[0]) leftMost = index[0];
-          if (rightMost < index[0]) rightMost = index[0];
-          if (topMost > index[1]) topMost = index[1];
-          if (bottomMost < index[1]) bottomMost = index[1];
-        }
-      });
-      const midX = (rightMost + leftMost) / 2;
-      const midY = (topMost + bottomMost) / 2;
+      const {visibleArea: zoomedVisibleArea, center} = calcVisibleArea(
+        this.mat,
+        boardSize,
+        extend
+      );
+      const visibleArea = zoom
+        ? zoomedVisibleArea
+        : [
+            [0, 18],
+            [0, 18],
+          ];
 
-      const maxh = rightMost - leftMost + 1;
-      const maxv = bottomMost - topMost + 1;
-      const revision =
-        maxh > maxv
-          ? Math.min(boardSize - rightMost - 1, leftMost)
-          : Math.min(topMost, boardSize - bottomMost - 1);
-      let maxhv = Math.max(maxh, maxv) + extend + revision;
-      if (maxhv > boardSize) maxhv = boardSize;
-      this.maxhv = maxhv;
-
-      const scale = 1 / (maxhv / boardSize);
-      const inner = 1 - maxhv / boardSize;
-      const distance = canvas.width * inner;
-
-      let visibleArea = [
-        [0, 18],
-        [0, 18],
-      ];
       if (zoom) {
-        if (midX < boardSize / 2 && midY < boardSize / 2) {
-          visibleArea = [
-            [0, maxhv - 1],
-            [0, maxhv - 1],
-          ];
-        } else if (midX >= boardSize / 2 && midY < boardSize / 2) {
-          visibleArea = [
-            [boardSize - maxhv, 18],
-            [0, maxhv - 1],
-          ];
-        } else if (midX < boardSize / 2 && midY >= boardSize / 2) {
-          visibleArea = [
-            [0, maxhv - 1],
-            [boardSize - maxhv, 18],
-          ];
-        } else if (midX >= boardSize / 2 && midY >= boardSize / 2) {
-          visibleArea = [
-            [boardSize - maxhv, 18],
-            [boardSize - maxhv, 18],
-          ];
-        }
         if (ctx) {
-          const offsetX = midX < boardSize / 2 ? 0 : distance * scale;
-          const offsetY = midY < boardSize / 2 ? 0 : distance * scale;
+          const {space} = this.calcSpaceAndPadding();
+          const zoomedBoardSize = visibleArea[0][1] - visibleArea[0][0] + 1;
+          const scale = 1 / (zoomedBoardSize / boardSize);
 
+          let offsetX = 0;
+          let offsetY = 0;
+          switch (center) {
+            case Center.TopLeft:
+              break;
+            case Center.TopRight:
+              offsetX = visibleArea[0][0] * space * scale;
+              console.log('ox', offsetX);
+              break;
+            case Center.BottomLeft:
+              offsetY = visibleArea[1][0] * space * scale;
+              break;
+            case Center.BottomRight:
+              offsetX = visibleArea[0][0] * space * scale;
+              offsetY = visibleArea[1][0] * space * scale;
+              break;
+          }
           this.transMat = new DOMMatrix();
           this.transMat.translateSelf(-offsetX, -offsetY);
           this.transMat.scaleSelf(scale, scale);

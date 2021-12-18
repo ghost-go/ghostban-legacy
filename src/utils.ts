@@ -1,10 +1,92 @@
 import _ from 'lodash';
 import {Matrix, forEach} from 'mathjs';
 import {sgfToPos} from './helper';
+import {Center} from './types';
 
 const GRID = 19;
 let liberties = 0;
 let recursionPath: string[] = [];
+
+export const calcMost = (mat: Matrix, boardSize = 19) => {
+  let leftMost: number = boardSize - 1;
+  let rightMost = 0;
+  let topMost: number = boardSize - 1;
+  let bottomMost = 0;
+  forEach(mat, (value: number, index: number[]) => {
+    if (value !== 0) {
+      if (leftMost > index[0]) leftMost = index[0];
+      if (rightMost < index[0]) rightMost = index[0];
+      if (topMost > index[1]) topMost = index[1];
+      if (bottomMost < index[1]) bottomMost = index[1];
+    }
+  });
+  return {leftMost, rightMost, topMost, bottomMost};
+};
+
+export const calcCenter = (mat: Matrix, boardSize = 19) => {
+  const {leftMost, rightMost, topMost, bottomMost} = calcMost(mat, boardSize);
+  const top = topMost < boardSize - 1 - bottomMost;
+  const left = leftMost < boardSize - 1 - rightMost;
+  if (top && left) return Center.TopLeft;
+  if (!top && left) return Center.BottomLeft;
+  if (top && !left) return Center.TopRight;
+  if (!top && !left) return Center.BottomRight;
+  // return Center.Center;
+};
+
+export const calcVisibleArea = (mat: Matrix, boardSize = 19, extend = 2) => {
+  const center = calcCenter(mat);
+  const {leftMost, rightMost, topMost, bottomMost} = calcMost(mat, boardSize);
+  let visibleArea = [
+    [0, 18],
+    [0, 18],
+  ];
+  // console.log('center', center);
+  // console.log('lrtb', leftMost, rightMost, topMost, bottomMost);
+  let visibleSize = boardSize - 1;
+  if (center == Center.TopLeft) {
+    visibleSize = Math.min(
+      Math.max(rightMost, bottomMost) + extend,
+      boardSize - 1
+    );
+    visibleArea = [
+      [0, visibleSize],
+      [0, visibleSize],
+    ];
+  } else if (center == Center.TopRight) {
+    visibleSize = Math.min(
+      Math.max(bottomMost + extend, boardSize - 1 - (leftMost - extend)),
+      boardSize - 1
+    );
+    visibleArea = [
+      [boardSize - 1 - visibleSize, 18],
+      [0, visibleSize],
+    ];
+  } else if (center == Center.BottomLeft) {
+    visibleSize = Math.min(
+      Math.max(boardSize - 1 - (topMost - extend), rightMost + extend),
+      boardSize - 1
+    );
+    visibleArea = [
+      [0, visibleSize],
+      [boardSize - 1 - visibleSize, 18],
+    ];
+  } else if (center == Center.BottomRight) {
+    visibleSize = Math.min(
+      Math.max(
+        boardSize - 1 - (topMost - extend),
+        boardSize - 1 - (leftMost - extend)
+      ),
+      boardSize - 1
+    );
+    console.log('vs', visibleSize);
+    visibleArea = [
+      [boardSize - 1 - visibleSize, 18],
+      [boardSize - 1 - visibleSize, 18],
+    ];
+  }
+  return {visibleArea, center};
+};
 
 function calcLibertyCore(mat: Matrix, x: number, y: number, ki: number) {
   if (x >= 0 && x < GRID && y >= 0 && y < GRID) {
