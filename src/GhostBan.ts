@@ -1,4 +1,10 @@
-import {matrix, zeros, forEach, Matrix, resize} from 'mathjs';
+import {
+  matrix,
+  zeros,
+  forEach,
+  Matrix,
+  thomsonCrossSectionDependencies,
+} from 'mathjs';
 import {A1_LETTERS, A1_NUMBERS} from './const';
 import {Theme, Ki} from './types';
 
@@ -34,7 +40,7 @@ import WalnutWhite from './assets/images/theme/walnut/white.png';
 import PhotorealisticBoard from './assets/images/theme/photorealistic/board.png';
 import PhotorealisticBlack from './assets/images/theme/photorealistic/black.png';
 import PhotorealisticWhite from './assets/images/theme/photorealistic/white.png';
-import {calcCenter, calcVisibleArea, Center} from '.';
+import {calcVisibleArea, Center} from '.';
 
 // const devicePixelRatio = window.devicePixelRatio;
 let devicePixelRatio = 1.0;
@@ -124,6 +130,7 @@ export class GhostBan {
   };
   private _turn: Ki;
   cursor: [number, number];
+  cursorPos: DOMPoint;
   mat: Matrix;
   marks: Matrix;
   maxhv: number;
@@ -140,6 +147,7 @@ export class GhostBan {
     this.marks = matrix(zeros([19, 19]));
     this._turn = Ki.Black;
     this.cursor = [18, 0];
+    this.cursorPos = new DOMPoint();
     this.maxhv = this.options.boardSize;
     this.transMat = new DOMMatrix();
 
@@ -179,63 +187,53 @@ export class GhostBan {
     canvas.style.position = 'absolute';
     this.canvas = canvas;
     this.dom = dom;
-
     this.resize();
-
     dom.firstChild?.remove();
     dom.appendChild(canvas);
-
-    const {interactive, padding} = this.options;
-    const {space} = this.calcSpaceAndPadding();
-
-    this.setInteractive(interactive);
-
-    // if (interactive) {
-    //   canvas.onmousemove = (e) => {
-    //     const point = this.transMat
-    //       .inverse()
-    //       .transformPoint(
-    //         new DOMPoint(
-    //           e.offsetX * devicePixelRatio,
-    //           e.offsetY * devicePixelRatio
-    //         )
-    //       );
-    //     const idx = Math.round((point.x - padding + space / 2) / space);
-    //     const idy = Math.round((point.y - padding + space / 2) / space);
-    //     this.cursor = [idx - 1, idy - 1];
-    //     this.render(this.mat, this.marks);
-    //   };
-    // }
+    this.setInteractive();
   }
 
   setOptions(options: GhostBanOptionsParams) {
     this.options = {...this.options, ...options};
   }
 
-  setInteractive(value: boolean) {
+  setInteractive() {
     const canvas = this.canvas;
     if (!canvas) return;
-    this.options.interactive = value;
     const {padding} = this.options;
     const {space} = this.calcSpaceAndPadding();
-    const onMouseMove = (e: MouseEvent) => {
-      const point = this.transMat
-        .inverse()
-        .transformPoint(
-          new DOMPoint(
-            e.offsetX * devicePixelRatio,
-            e.offsetY * devicePixelRatio
-          )
-        );
+
+    const setCursorWithRender = (domPoint: DOMPoint) => {
+      const point = this.transMat.inverse().transformPoint(domPoint);
       const idx = Math.round((point.x - padding + space / 2) / space);
       const idy = Math.round((point.y - padding + space / 2) / space);
       this.cursor = [idx - 1, idy - 1];
       this.render(this.mat, this.marks);
     };
-    if (value) {
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touches = e.changedTouches;
+      const point = new DOMPoint(
+        (touches[0].clientX - rect.left) * devicePixelRatio,
+        (touches[0].clientY - rect.top) * devicePixelRatio
+      );
+      setCursorWithRender(point);
+    };
+    const onMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
+      const point = new DOMPoint(
+        e.offsetX * devicePixelRatio,
+        e.offsetY * devicePixelRatio
+      );
+      setCursorWithRender(point);
+    };
+    if (this.options.interactive) {
       canvas.addEventListener('mousemove', onMouseMove);
+      canvas.addEventListener('touchmove', onTouchMove);
     } else {
       canvas.removeEventListener('mousemove', onMouseMove);
+      canvas.removeEventListener('touchmove', onTouchMove);
     }
   }
 
@@ -312,34 +310,39 @@ export class GhostBan {
             [0, 18],
           ];
 
-      if (zoom) {
-        if (ctx) {
-          const {space} = this.calcSpaceAndPadding();
-          const zoomedBoardSize = visibleArea[0][1] - visibleArea[0][0] + 1;
-          const scale = 1 / (zoomedBoardSize / boardSize);
+      if (zoom && ctx) {
+        const {space} = this.calcSpaceAndPadding();
+        const zoomedBoardSize = visibleArea[0][1] - visibleArea[0][0] + 1;
+        const scale = 1 / (zoomedBoardSize / boardSize);
 
-          let offsetX = 0;
-          let offsetY = 0;
-          switch (center) {
-            case Center.TopLeft:
-              break;
-            case Center.TopRight:
-              offsetX = visibleArea[0][0] * space * scale;
-              console.log('ox', offsetX);
-              break;
-            case Center.BottomLeft:
-              offsetY = visibleArea[1][0] * space * scale;
-              break;
-            case Center.BottomRight:
-              offsetX = visibleArea[0][0] * space * scale;
-              offsetY = visibleArea[1][0] * space * scale;
-              break;
-          }
-          this.transMat = new DOMMatrix();
-          this.transMat.translateSelf(-offsetX, -offsetY);
-          this.transMat.scaleSelf(scale, scale);
-          ctx.setTransform(this.transMat);
+        let offsetX = 0;
+        let offsetY = 0;
+        switch (center) {
+          case Center.TopLeft:
+            break;
+          case Center.TopRight:
+            offsetX =
+              visibleArea[0][0] * space * scale +
+              (this.options.padding / 2) * scale;
+            break;
+          case Center.BottomLeft:
+            offsetY =
+              visibleArea[1][0] * space * scale +
+              (this.options.padding / 2) * scale;
+            break;
+          case Center.BottomRight:
+            offsetX =
+              visibleArea[0][0] * space * scale +
+              (this.options.padding / 2) * scale;
+            offsetY =
+              visibleArea[1][0] * space * scale +
+              (this.options.padding / 2) * scale;
+            break;
         }
+        this.transMat = new DOMMatrix();
+        this.transMat.translateSelf(-offsetX, -offsetY);
+        this.transMat.scaleSelf(scale, scale);
+        ctx.setTransform(this.transMat);
       }
 
       this.drawBan();
@@ -544,7 +547,7 @@ export class GhostBan {
       const {padding, boardSize} = this.options;
       // scaledPadding = padding * devicePixelRatio;
       scaledPadding = padding;
-      space = (this.canvas.width - scaledPadding * 2) / boardSize;
+      space = (this.canvas.width - padding * 2) / boardSize;
       scaledPadding = scaledPadding + space / 2;
     }
     return {space, scaledPadding};
@@ -562,6 +565,10 @@ export class GhostBan {
       if (idy < visibleArea[1][0] || idy > visibleArea[1][1]) return;
       const x = idx * space + space / 2 + padding;
       const y = idy * space + space / 2 + padding;
+
+      const p = this.transMat.transformPoint(new DOMPoint(x, y));
+      console.log('xx', p.x / space, p.y / space);
+
       if (ctx) {
         const size = space * 0.4;
         ctx.save();

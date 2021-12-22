@@ -31,7 +31,6 @@ export const calcCenter = (mat: Matrix, boardSize = 19) => {
   if (!top && left) return Center.BottomLeft;
   if (top && !left) return Center.TopRight;
   if (!top && !left) return Center.BottomRight;
-  // return Center.Center;
 };
 
 export const calcVisibleArea = (mat: Matrix, boardSize = 19, extend = 2) => {
@@ -41,8 +40,6 @@ export const calcVisibleArea = (mat: Matrix, boardSize = 19, extend = 2) => {
     [0, 18],
     [0, 18],
   ];
-  // console.log('center', center);
-  // console.log('lrtb', leftMost, rightMost, topMost, bottomMost);
   let visibleSize = boardSize - 1;
   if (center == Center.TopLeft) {
     visibleSize = Math.min(
