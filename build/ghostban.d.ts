@@ -31,6 +31,7 @@ export declare class GhostBan {
     };
     private _turn;
     cursor: [number, number];
+    cursorPos: DOMPoint;
     mat: Matrix;
     marks: Matrix;
     maxhv: number;
@@ -40,7 +41,7 @@ export declare class GhostBan {
     resize(): void;
     init(dom: HTMLElement): void;
     setOptions(options: GhostBanOptionsParams): void;
-    setInteractive(value: boolean): void;
+    renderInteractive(): void;
     setTheme(theme: Theme): void;
     render(mat?: Matrix, marks?: Matrix): void;
     clearCanvas: () => void;

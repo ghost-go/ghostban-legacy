@@ -12,3 +12,10 @@ export declare enum Theme {
     Walnut = "Walnet",
     Photorealistic = "Photorealistic"
 }
+export declare enum Center {
+    TopRight = "tr",
+    TopLeft = "tl",
+    BottomLeft = "bl",
+    BottomRight = "br",
+    Center = "c"
+}

@@ -1,10 +1,4 @@
-import {
-  matrix,
-  zeros,
-  forEach,
-  Matrix,
-  thomsonCrossSectionDependencies,
-} from 'mathjs';
+import {matrix, zeros, forEach, Matrix} from 'mathjs';
 import {A1_LETTERS, A1_NUMBERS} from './const';
 import {Theme, Ki} from './types';
 
@@ -190,14 +184,14 @@ export class GhostBan {
     this.resize();
     dom.firstChild?.remove();
     dom.appendChild(canvas);
-    this.setInteractive();
+    this.renderInteractive();
   }
 
   setOptions(options: GhostBanOptionsParams) {
     this.options = {...this.options, ...options};
   }
 
-  setInteractive() {
+  renderInteractive() {
     const canvas = this.canvas;
     if (!canvas) return;
     const {padding} = this.options;
@@ -207,6 +201,10 @@ export class GhostBan {
       const point = this.transMat.inverse().transformPoint(domPoint);
       const idx = Math.round((point.x - padding + space / 2) / space);
       const idy = Math.round((point.y - padding + space / 2) / space);
+      const xx = idx * space;
+      const yy = idy * space;
+      const p = this.transMat.transformPoint(new DOMPoint(xx, yy));
+      this.cursorPos = p;
       this.cursor = [idx - 1, idy - 1];
       this.render(this.mat, this.marks);
     };
@@ -565,9 +563,6 @@ export class GhostBan {
       if (idy < visibleArea[1][0] || idy > visibleArea[1][1]) return;
       const x = idx * space + space / 2 + padding;
       const y = idy * space + space / 2 + padding;
-
-      const p = this.transMat.transformPoint(new DOMPoint(x, y));
-      console.log('xx', p.x / space, p.y / space);
 
       if (ctx) {
         const size = space * 0.4;
