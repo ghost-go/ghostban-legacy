@@ -1,4 +1,4 @@
-import {clone} from 'lodash';
+import clone from 'lodash/clone';
 // import JsFeat from 'jsfeat';
 import * as Const from './const';
 

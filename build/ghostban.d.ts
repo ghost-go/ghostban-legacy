@@ -1,4 +1,3 @@
-import type { Matrix } from 'mathjs';
 import { Theme, Ki } from './types';
 export declare type GhostBanOptions = {
     boardSize: number;
@@ -32,8 +31,8 @@ export declare class GhostBan {
     private _turn;
     cursor: [number, number];
     cursorPos: DOMPoint;
-    mat: Matrix;
-    marks: Matrix;
+    mat: number[][];
+    marks: number[][];
     maxhv: number;
     transMat: DOMMatrix;
     constructor(options?: GhostBanOptionsParams);
@@ -43,9 +42,9 @@ export declare class GhostBan {
     setOptions(options: GhostBanOptionsParams): void;
     renderInteractive(): void;
     setTheme(theme: Theme): void;
-    render(mat?: Matrix, marks?: Matrix): void;
+    render(mat?: number[][], marks?: number[][]): void;
     clearCanvas: () => void;
-    drawMarks: (matrix: Matrix) => void;
+    drawMarks: (matrix: number[][]) => void;
     drawBan: () => void;
     drawBoardLine: (visibleArea?: number[][]) => void;
     drawStars: (visibleArea?: number[][]) => void;
@@ -55,6 +54,6 @@ export declare class GhostBan {
         scaledPadding: number;
     };
     drawCursor: (visibleArea: number[][]) => void;
-    drawStones: (matrix: Matrix) => void;
+    drawStones: (matrix: number[][]) => void;
 }
 export {};

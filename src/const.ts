@@ -1,4 +1,4 @@
-import {chunk} from 'lodash';
+import chunk from 'lodash/chunk';
 
 export const A1_LETTERS = [
   'A',

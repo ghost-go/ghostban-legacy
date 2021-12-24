@@ -42,7 +42,7 @@
   "dependencies": {
     "babel-plugin-lodash": "^3.3.4",
     "lodash": "^4.17.21",
-    "mathjs": "^9.5.1"
+    "mathjs": "^10.0.1"
   },
   "jest": {
     "moduleFileExtensions": [

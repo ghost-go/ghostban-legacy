@@ -1,7 +1,6 @@
-import type {Matrix} from 'mathjs';
 import {A1_LETTERS, A1_NUMBERS} from './const';
 import {Theme, Ki} from './types';
-import {zeros, matrix, forEach} from './utils';
+import {zeros} from './utils';
 
 import SubduedBoard from './assets/images/theme/subdued/board.png';
 import SubduedWhite from './assets/images/theme/subdued/white.png';
@@ -115,7 +114,6 @@ export class GhostBan {
     extend: 2,
     interactive: false,
     coordinate: true,
-    // matrix: matrix(math.ones([19, 19])),
   };
   dom: HTMLElement | undefined;
   canvas?: HTMLCanvasElement;
@@ -127,8 +125,8 @@ export class GhostBan {
   private _turn: Ki;
   cursor: [number, number];
   cursorPos: DOMPoint;
-  mat: Matrix;
-  marks: Matrix;
+  mat: number[][];
+  marks: number[][];
   maxhv: number;
   transMat: DOMMatrix;
 
@@ -139,8 +137,8 @@ export class GhostBan {
       white: [],
       black: [],
     };
-    this.mat = matrix!(zeros!([19, 19]));
-    this.marks = matrix!(zeros!([19, 19]));
+    this.mat = zeros([19, 19]);
+    this.marks = zeros([19, 19]);
     this._turn = Ki.Black;
     this.cursor = [18, 0];
     this.cursorPos = new DOMPoint();
@@ -176,8 +174,8 @@ export class GhostBan {
   }
 
   init(dom: HTMLElement) {
-    this.mat = matrix!(zeros!([19, 19]));
-    this.marks = matrix!(zeros!([19, 19]));
+    this.mat = zeros([19, 19]);
+    this.marks = zeros([19, 19]);
     this.transMat = new DOMMatrix();
     const canvas = document.createElement('canvas');
     canvas.style.position = 'absolute';
@@ -289,7 +287,7 @@ export class GhostBan {
     }
   }
 
-  render(mat?: Matrix, marks?: Matrix) {
+  render(mat?: number[][], marks?: number[][]) {
     if (mat) this.mat = mat;
     if (marks) this.marks = marks;
     const {boardSize, zoom, extend, interactive, coordinate} = this.options;
@@ -370,30 +368,33 @@ export class GhostBan {
     }
   };
 
-  drawMarks = (matrix: Matrix) => {
+  drawMarks = (matrix: number[][]) => {
     const canvas = this.canvas;
     if (canvas) {
-      forEach!(matrix, (value, index) => {
-        if (value !== 0) {
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            const {space, scaledPadding} = this.calcSpaceAndPadding();
-            const x = scaledPadding + index[0] * space;
-            const y = scaledPadding + index[1] * space;
-            ctx.beginPath();
-            ctx.arc(x, y, space * 0.3, 0, 2 * Math.PI, true);
-            ctx.lineWidth = 2;
-            if (value === 1) {
-              ctx.strokeStyle = '#fff';
-            } else {
+      for (let i = 0; i < matrix.length; i++) {
+        for (let j = 0; j < matrix[i].length; j++) {
+          const value = matrix[i][j];
+          if (value !== 0) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              const {space, scaledPadding} = this.calcSpaceAndPadding();
+              const x = scaledPadding + i * space;
+              const y = scaledPadding + j * space;
+              ctx.beginPath();
+              ctx.arc(x, y, space * 0.3, 0, 2 * Math.PI, true);
+              ctx.lineWidth = 2;
+              if (value === 1) {
+                ctx.strokeStyle = '#fff';
+              } else {
+                ctx.strokeStyle = '#000';
+              }
+              ctx.stroke();
+              ctx.lineWidth = 1;
               ctx.strokeStyle = '#000';
             }
-            ctx.stroke();
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = '#000';
           }
         }
-      });
+      }
     }
   };
 
@@ -589,59 +590,62 @@ export class GhostBan {
     }
   };
 
-  drawStones = (matrix: Matrix) => {
+  drawStones = (matrix: number[][]) => {
     const canvas = this.canvas;
     const {theme} = this.options;
     if (canvas) {
-      forEach!(matrix, (value, index) => {
-        if (value !== 0) {
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            const {space, scaledPadding} = this.calcSpaceAndPadding();
-            const x = scaledPadding + index[0] * space;
-            const y = scaledPadding + index[1] * space;
+      for (let i = 0; i < matrix.length; i++) {
+        for (let j = 0; j < matrix[i].length; j++) {
+          const value = matrix[i][j];
+          if (value !== 0) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              const {space, scaledPadding} = this.calcSpaceAndPadding();
+              const x = scaledPadding + i * space;
+              const y = scaledPadding + j * space;
 
-            const ratio = 0.46;
-            ctx.save();
-            if (
-              theme !== Theme.Subdued &&
-              theme !== Theme.BlackAndWhite &&
-              theme !== Theme.Flat
-            ) {
-              ctx.shadowOffsetX = 3;
-              ctx.shadowOffsetY = 3;
-              ctx.shadowColor = '#555';
-              ctx.shadowBlur = 8;
-            }
-            if (theme === Theme.BlackAndWhite || theme === Theme.Flat) {
-              ctx.beginPath();
-              ctx.arc(x, y, space * ratio, 0, 2 * Math.PI, true);
-              ctx.lineWidth = 1;
-              ctx.strokeStyle = '#000';
-              if (value === 1) {
-                ctx.fillStyle = '#000';
-              } else if (value === -1) {
-                ctx.fillStyle = '#fff';
+              const ratio = 0.46;
+              ctx.save();
+              if (
+                theme !== Theme.Subdued &&
+                theme !== Theme.BlackAndWhite &&
+                theme !== Theme.Flat
+              ) {
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+                ctx.shadowColor = '#555';
+                ctx.shadowBlur = 8;
               }
-              ctx.fill();
-              ctx.stroke();
-            } else {
-              const mod = index[0] + 10 + index[1];
-              let img;
-              if (value === 1) {
-                img = this.resources.black[mod % this.resources.black.length];
+              if (theme === Theme.BlackAndWhite || theme === Theme.Flat) {
+                ctx.beginPath();
+                ctx.arc(x, y, space * ratio, 0, 2 * Math.PI, true);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = '#000';
+                if (value === 1) {
+                  ctx.fillStyle = '#000';
+                } else if (value === -1) {
+                  ctx.fillStyle = '#fff';
+                }
+                ctx.fill();
+                ctx.stroke();
               } else {
-                img = this.resources.white[mod % this.resources.white.length];
+                const mod = i + 10 + j;
+                let img;
+                if (value === 1) {
+                  img = this.resources.black[mod % this.resources.black.length];
+                } else {
+                  img = this.resources.white[mod % this.resources.white.length];
+                }
+                if (img) {
+                  const size = space * ratio * 2;
+                  ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
+                }
               }
-              if (img) {
-                const size = space * ratio * 2;
-                ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
-              }
+              ctx.restore();
             }
-            ctx.restore();
           }
         }
-      });
+      }
     }
   };
 }
