@@ -1,4 +1,4 @@
-import { Matrix } from 'mathjs';
+import type { Matrix } from 'mathjs';
 import { Theme, Ki } from './types';
 export declare type GhostBanOptions = {
     boardSize: number;

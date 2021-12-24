@@ -1,7 +1,24 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import _ from 'lodash';
-import {Matrix, forEach} from 'mathjs';
+import {
+  create,
+  Matrix,
+  forEachDependencies,
+  zerosDependencies,
+  matrixDependencies,
+} from 'mathjs';
 import {sgfToPos} from './helper';
 import {Center} from './types';
+
+export const {zeros, matrix, forEach} = create(
+  {
+    forEachDependencies,
+    zerosDependencies,
+    matrixDependencies,
+  },
+  {}
+);
 
 const GRID = 19;
 let liberties = 0;
@@ -12,7 +29,7 @@ export const calcMost = (mat: Matrix, boardSize = 19) => {
   let rightMost = 0;
   let topMost: number = boardSize - 1;
   let bottomMost = 0;
-  forEach(mat, (value: number, index: number[]) => {
+  forEach!(mat, (value: number, index: number[]) => {
     if (value !== 0) {
       if (leftMost > index[0]) leftMost = index[0];
       if (rightMost < index[0]) rightMost = index[0];

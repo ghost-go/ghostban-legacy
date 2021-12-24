@@ -1,6 +1,7 @@
-import {matrix, zeros, forEach, Matrix} from 'mathjs';
+import type {Matrix} from 'mathjs';
 import {A1_LETTERS, A1_NUMBERS} from './const';
 import {Theme, Ki} from './types';
+import {zeros, matrix, forEach} from './utils';
 
 import SubduedBoard from './assets/images/theme/subdued/board.png';
 import SubduedWhite from './assets/images/theme/subdued/white.png';
@@ -138,8 +139,8 @@ export class GhostBan {
       white: [],
       black: [],
     };
-    this.mat = matrix(zeros([19, 19]));
-    this.marks = matrix(zeros([19, 19]));
+    this.mat = matrix!(zeros!([19, 19]));
+    this.marks = matrix!(zeros!([19, 19]));
     this._turn = Ki.Black;
     this.cursor = [18, 0];
     this.cursorPos = new DOMPoint();
@@ -175,8 +176,8 @@ export class GhostBan {
   }
 
   init(dom: HTMLElement) {
-    this.mat = matrix(zeros([19, 19]));
-    this.marks = matrix(zeros([19, 19]));
+    this.mat = matrix!(zeros!([19, 19]));
+    this.marks = matrix!(zeros!([19, 19]));
     this.transMat = new DOMMatrix();
     const canvas = document.createElement('canvas');
     canvas.style.position = 'absolute';
@@ -372,7 +373,7 @@ export class GhostBan {
   drawMarks = (matrix: Matrix) => {
     const canvas = this.canvas;
     if (canvas) {
-      forEach(matrix, (value, index) => {
+      forEach!(matrix, (value, index) => {
         if (value !== 0) {
           const ctx = canvas.getContext('2d');
           if (ctx) {
@@ -592,7 +593,7 @@ export class GhostBan {
     const canvas = this.canvas;
     const {theme} = this.options;
     if (canvas) {
-      forEach(matrix, (value, index) => {
+      forEach!(matrix, (value, index) => {
         if (value !== 0) {
           const ctx = canvas.getContext('2d');
           if (ctx) {
