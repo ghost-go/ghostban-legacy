@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import {clone} from 'lodash';
 // import JsFeat from 'jsfeat';
 import * as Const from './const';
 
@@ -17,7 +17,7 @@ export const sgfToPos = (str: any) => {
 // export const sgfOffset = (sgf, offset = 0, quadrant = 1) => {
 export const sgfOffset = (sgf: any, offset = 0) => {
   if (offset === 0) return sgf;
-  const res = _.clone(sgf);
+  const res = clone(sgf);
   const charIndex = Const.SGF_LETTERS.indexOf(sgf[2]) - offset;
   return res.substr(0, 2) + Const.SGF_LETTERS[charIndex] + res.substr(2 + 1);
 };
@@ -41,7 +41,7 @@ export const posToSgf = (x: number, y: number, ki: number) => {
 export const convertStoneTypeToString = (type: any) => (type === 1 ? 'B' : 'W');
 
 export const convertStepsForAI = (steps: any, offset = 0) => {
-  let res = _.clone(steps);
+  let res = clone(steps);
   res = res.map((s: any) => sgfOffset(s, offset));
   const header = `(;FF[4]GM[1]SZ[${
     19 - offset

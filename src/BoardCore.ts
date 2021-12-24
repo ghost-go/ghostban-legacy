@@ -1,5 +1,5 @@
-import _ from 'lodash';
-import {Matrix} from 'mathjs';
+import {cloneDeep} from 'lodash';
+import type {Matrix} from 'mathjs';
 import {sgfToPos} from './helper';
 
 let liberties = 0;
@@ -151,7 +151,7 @@ export function canMove(mat: Matrix, i: number, j: number, ki: number) {
 }
 
 export function showKi(array: Matrix, steps: string[], isPonnuki = true) {
-  let newMat = _.cloneDeep(array);
+  let newMat = cloneDeep(array);
   let hasMoved = false;
   steps.forEach(str => {
     const {

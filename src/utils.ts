@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import _ from 'lodash';
+import {cloneDeep} from 'lodash';
 import {
   create,
   Matrix,
@@ -141,7 +141,7 @@ function calcLiberty(mat: Matrix, x: number, y: number, ki: number) {
 }
 
 function execPonnuki(mat: Matrix, i: number, j: number, ki: number) {
-  const newMat = _.cloneDeep(mat);
+  const newMat = cloneDeep(mat);
   const {liberty: libertyUp, recursionPath: recursionPathUp} = calcLiberty(
     mat,
     i,
@@ -226,7 +226,7 @@ function canPonnuki(mat: Matrix, i: number, j: number, ki: number) {
 }
 
 export function canMove(mat: Matrix, i: number, j: number, ki: number) {
-  const newMat = _.cloneDeep(mat);
+  const newMat = cloneDeep(mat);
   if (newMat.get([i, j]) !== 0) {
     return false;
   }
@@ -246,13 +246,13 @@ export function canMove(mat: Matrix, i: number, j: number, ki: number) {
 }
 
 export function move(mat: Matrix, i: number, j: number, ki: number) {
-  const newMat = _.cloneDeep(mat);
+  const newMat = cloneDeep(mat);
   newMat.set([i, j], ki);
   return execPonnuki(newMat, i, j, -ki);
 }
 
 export function showKi(mat: Matrix, steps: string[], isPonnuki = true) {
-  let newMat = _.cloneDeep(mat);
+  let newMat = cloneDeep(mat);
   let hasMoved = false;
   steps.forEach(str => {
     const {

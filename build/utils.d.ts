@@ -3,10 +3,10 @@ import { Center } from './types';
 export declare const zeros: {
     (size: number | number[], format?: string | undefined): Matrix | import("mathjs").MathArray;
     (m: number, n: number, format?: string | undefined): Matrix | import("mathjs").MathArray;
-} | undefined, matrix: {
+}, matrix: {
     (format?: "sparse" | "dense" | undefined): Matrix;
     (data: Matrix | import("mathjs").MathArray, format?: "sparse" | "dense" | undefined, dataType?: string | undefined): Matrix;
-} | undefined, forEach: (<T extends Matrix | import("mathjs").MathArray>(x: T, callback: (value: any, index: any, matrix: T) => void) => void) | undefined;
+}, forEach: <T extends Matrix | import("mathjs").MathArray>(x: T, callback: (value: any, index: any, matrix: T) => void) => void;
 export declare const calcMost: (mat: Matrix, boardSize?: number) => {
     leftMost: number;
     rightMost: number;
