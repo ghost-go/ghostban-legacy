@@ -3,7 +3,7 @@
 import {cloneDeep} from 'lodash';
 import {
   create,
-  Matrix,
+  Matrix as MathMatrix,
   forEachDependencies,
   zerosDependencies,
   matrixDependencies,
@@ -19,6 +19,8 @@ export const {zeros, matrix, forEach} = create(
   },
   {}
 );
+
+export type Matrix = MathMatrix;
 
 const GRID = 19;
 let liberties = 0;
