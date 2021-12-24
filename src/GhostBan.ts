@@ -6,35 +6,36 @@ import SubduedBoard from './assets/images/theme/subdued/board.png';
 import SubduedWhite from './assets/images/theme/subdued/white.png';
 import SubduedBlack from './assets/images/theme/subdued/black.png';
 
-import ShellBoard from './assets/images/theme/shell-stone/board.png';
-import ShellBlack from './assets/images/theme/shell-stone/black.png';
-import ShellWhite0 from './assets/images/theme/shell-stone/white0.png';
-import ShellWhite1 from './assets/images/theme/shell-stone/white1.png';
-import ShellWhite2 from './assets/images/theme/shell-stone/white2.png';
-import ShellWhite3 from './assets/images/theme/shell-stone/white3.png';
-import ShellWhite4 from './assets/images/theme/shell-stone/white4.png';
+// import ShellBoard from './assets/images/theme/shell-stone/board.png';
+// import ShellBlack from './assets/images/theme/shell-stone/black.png';
+// import ShellWhite0 from './assets/images/theme/shell-stone/white0.png';
+// import ShellWhite1 from './assets/images/theme/shell-stone/white1.png';
+// import ShellWhite2 from './assets/images/theme/shell-stone/white2.png';
+// import ShellWhite3 from './assets/images/theme/shell-stone/white3.png';
+// import ShellWhite4 from './assets/images/theme/shell-stone/white4.png';
 
-import SlateAndShellBoard from './assets/images/theme/slate-and-shell/board.png';
+// import SlateAndShellBoard from './assets/images/theme/slate-and-shell/board.png';
 
-import SlateAndShellBlack0 from './assets/images/theme/slate-and-shell/slate1.png';
-import SlateAndShellBlack1 from './assets/images/theme/slate-and-shell/slate2.png';
-import SlateAndShellBlack2 from './assets/images/theme/slate-and-shell/slate3.png';
-import SlateAndShellBlack3 from './assets/images/theme/slate-and-shell/slate4.png';
-import SlateAndShellBlack4 from './assets/images/theme/slate-and-shell/slate5.png';
-import SlateAndShellWhite0 from './assets/images/theme/slate-and-shell/shell1.png';
-import SlateAndShellWhite1 from './assets/images/theme/slate-and-shell/shell2.png';
-import SlateAndShellWhite2 from './assets/images/theme/slate-and-shell/shell3.png';
-import SlateAndShellWhite3 from './assets/images/theme/slate-and-shell/shell4.png';
-import SlateAndShellWhite4 from './assets/images/theme/slate-and-shell/shell5.png';
+// import SlateAndShellBlack0 from './assets/images/theme/slate-and-shell/slate1.png';
+// import SlateAndShellBlack1 from './assets/images/theme/slate-and-shell/slate2.png';
+// import SlateAndShellBlack2 from './assets/images/theme/slate-and-shell/slate3.png';
+// import SlateAndShellBlack3 from './assets/images/theme/slate-and-shell/slate4.png';
+// import SlateAndShellBlack4 from './assets/images/theme/slate-and-shell/slate5.png';
+// import SlateAndShellWhite0 from './assets/images/theme/slate-and-shell/shell1.png';
+// import SlateAndShellWhite1 from './assets/images/theme/slate-and-shell/shell2.png';
+// import SlateAndShellWhite2 from './assets/images/theme/slate-and-shell/shell3.png';
+// import SlateAndShellWhite3 from './assets/images/theme/slate-and-shell/shell4.png';
+// import SlateAndShellWhite4 from './assets/images/theme/slate-and-shell/shell5.png';
 
-import WalnutBoard from './assets/images/theme/walnut/board.jpg';
-import WalnutBlack from './assets/images/theme/walnut/black.png';
-import WalnutWhite from './assets/images/theme/walnut/white.png';
+// import WalnutBoard from './assets/images/theme/walnut/board.jpg';
+// import WalnutBlack from './assets/images/theme/walnut/black.png';
+// import WalnutWhite from './assets/images/theme/walnut/white.png';
 
-import PhotorealisticBoard from './assets/images/theme/photorealistic/board.png';
-import PhotorealisticBlack from './assets/images/theme/photorealistic/black.png';
-import PhotorealisticWhite from './assets/images/theme/photorealistic/white.png';
-import {calcVisibleArea, Center} from '.';
+// import PhotorealisticBoard from './assets/images/theme/photorealistic/board.png';
+// import PhotorealisticBlack from './assets/images/theme/photorealistic/black.png';
+// import PhotorealisticWhite from './assets/images/theme/photorealistic/white.png';
+import {Center} from './types';
+import {calcVisibleArea} from './utils';
 
 // const devicePixelRatio = window.devicePixelRatio;
 let devicePixelRatio = 1.0;
@@ -49,38 +50,38 @@ const Resources = {
     black: [SubduedBlack],
     white: [SubduedWhite],
   },
-  [Theme.ShellStone]: {
-    board: ShellBoard,
-    black: [ShellBlack],
-    white: [ShellWhite0, ShellWhite1, ShellWhite2, ShellWhite3, ShellWhite4],
-  },
-  [Theme.SlateAndShell]: {
-    board: SlateAndShellBoard,
-    black: [
-      SlateAndShellBlack0,
-      SlateAndShellBlack1,
-      SlateAndShellBlack2,
-      SlateAndShellBlack3,
-      SlateAndShellBlack4,
-    ],
-    white: [
-      SlateAndShellWhite0,
-      SlateAndShellWhite1,
-      SlateAndShellWhite2,
-      SlateAndShellWhite3,
-      SlateAndShellWhite4,
-    ],
-  },
-  [Theme.Walnut]: {
-    board: WalnutBoard,
-    black: [WalnutBlack],
-    white: [WalnutWhite],
-  },
-  [Theme.Photorealistic]: {
-    board: PhotorealisticBoard,
-    black: [PhotorealisticBlack],
-    white: [PhotorealisticWhite],
-  },
+  // [Theme.ShellStone]: {
+  //   board: ShellBoard,
+  //   black: [ShellBlack],
+  //   white: [ShellWhite0, ShellWhite1, ShellWhite2, ShellWhite3, ShellWhite4],
+  // },
+  // [Theme.SlateAndShell]: {
+  //   board: SlateAndShellBoard,
+  //   black: [
+  //     SlateAndShellBlack0,
+  //     SlateAndShellBlack1,
+  //     SlateAndShellBlack2,
+  //     SlateAndShellBlack3,
+  //     SlateAndShellBlack4,
+  //   ],
+  //   white: [
+  //     SlateAndShellWhite0,
+  //     SlateAndShellWhite1,
+  //     SlateAndShellWhite2,
+  //     SlateAndShellWhite3,
+  //     SlateAndShellWhite4,
+  //   ],
+  // },
+  // [Theme.Walnut]: {
+  //   board: WalnutBoard,
+  //   black: [WalnutBlack],
+  //   white: [WalnutWhite],
+  // },
+  // [Theme.Photorealistic]: {
+  //   board: PhotorealisticBoard,
+  //   black: [PhotorealisticBlack],
+  //   white: [PhotorealisticWhite],
+  // },
 };
 
 export type GhostBanOptions = {
@@ -244,11 +245,12 @@ export class GhostBan {
       if (theme === Theme.BlackAndWhite) {
         canvas.style.boxShadow = '0px 0px 0px #000000';
       } else if (
-        theme === Theme.Subdued ||
-        theme === Theme.Photorealistic ||
-        theme === Theme.ShellStone ||
-        theme === Theme.SlateAndShell ||
-        theme === Theme.Walnut
+        theme === Theme.Subdued
+        // ||
+        // theme === Theme.Photorealistic ||
+        // theme === Theme.ShellStone ||
+        // theme === Theme.SlateAndShell ||
+        // theme === Theme.Walnut
       ) {
         const board = new Image();
         const boardTheme = Resources[theme];
