@@ -1,6 +1,6 @@
 import {A1_LETTERS, A1_NUMBERS} from './const';
 import {Theme, Ki} from './types';
-import {zeros, initMarks} from './utils';
+import {zeros, empty} from './utils';
 
 import SubduedBoard from './assets/images/theme/subdued/board.png';
 import SubduedWhite from './assets/images/theme/subdued/white.png';
@@ -138,7 +138,7 @@ export class GhostBan {
       black: [],
     };
     this.mat = zeros([19, 19]);
-    this.marks = initMarks([19, 19]);
+    this.marks = empty([19, 19]);
     this._turn = Ki.Black;
     this.cursor = [18, 0];
     this.cursorPos = new DOMPoint();
@@ -175,7 +175,7 @@ export class GhostBan {
 
   init(dom: HTMLElement) {
     this.mat = zeros([19, 19]);
-    this.marks = initMarks([19, 19]);
+    this.marks = empty([19, 19]);
     this.transMat = new DOMMatrix();
     const canvas = document.createElement('canvas');
     canvas.style.position = 'absolute';

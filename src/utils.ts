@@ -7,10 +7,7 @@ import {Center} from './types';
 export const zeros = (size: [number, number]) =>
   new Array(size[0]).fill(0).map(() => new Array(size[1]).fill(0));
 
-export const initMat = (size: [number, number]): number[][] =>
-  new Array(size[0]).fill(0).map(() => new Array(size[1]).fill(0));
-
-export const initMarks = (size: [number, number]): string[][] =>
+export const empty = (size: [number, number]): string[][] =>
   new Array(size[0]).fill('').map(() => new Array(size[1]).fill(''));
 
 const GRID = 19;
