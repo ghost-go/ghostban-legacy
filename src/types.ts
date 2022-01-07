@@ -21,3 +21,10 @@ export enum Center {
   BottomRight = 'br',
   Center = 'c',
 }
+
+export enum Mark {
+  Current = 'cu',
+  Circle = 'ci',
+  Square = 'sq',
+  Triangle = 'tri',
+}

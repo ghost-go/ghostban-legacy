@@ -26,13 +26,6 @@ export default [
     output: [
       {
         name: moduleName,
-        file: pkg.browser,
-        format: 'iife',
-        sourcemap: 'inline',
-        banner,
-      },
-      {
-        name: moduleName,
         file: pkg.browser.replace('.js', '.min.js'),
         format: 'iife',
         sourcemap: 'inline',

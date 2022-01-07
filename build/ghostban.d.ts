@@ -32,7 +32,7 @@ export declare class GhostBan {
     cursor: [number, number];
     cursorPos: DOMPoint;
     mat: number[][];
-    marks: number[][];
+    marks: string[][];
     maxhv: number;
     transMat: DOMMatrix;
     constructor(options?: GhostBanOptionsParams);
@@ -42,9 +42,9 @@ export declare class GhostBan {
     setOptions(options: GhostBanOptionsParams): void;
     renderInteractive(): void;
     setTheme(theme: Theme): void;
-    render(mat?: number[][], marks?: number[][]): void;
+    render(mat?: number[][], marks?: string[][]): void;
     clearCanvas: () => void;
-    drawMarks: (matrix: number[][]) => void;
+    drawMarks: (mat: number[][], marks: string[][]) => void;
     drawBan: () => void;
     drawBoardLine: (visibleArea?: number[][]) => void;
     drawStars: (visibleArea?: number[][]) => void;

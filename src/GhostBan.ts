@@ -1,6 +1,6 @@
 import {A1_LETTERS, A1_NUMBERS} from './const';
 import {Theme, Ki} from './types';
-import {zeros} from './utils';
+import {zeros, initMarks} from './utils';
 
 import SubduedBoard from './assets/images/theme/subdued/board.png';
 import SubduedWhite from './assets/images/theme/subdued/white.png';
@@ -34,7 +34,7 @@ import SubduedBlack from './assets/images/theme/subdued/black.png';
 // import PhotorealisticBoard from './assets/images/theme/photorealistic/board.png';
 // import PhotorealisticBlack from './assets/images/theme/photorealistic/black.png';
 // import PhotorealisticWhite from './assets/images/theme/photorealistic/white.png';
-import {Center} from './types';
+import {Center, Mark} from './types';
 import {calcVisibleArea} from './utils';
 
 // const devicePixelRatio = window.devicePixelRatio;
@@ -126,7 +126,7 @@ export class GhostBan {
   cursor: [number, number];
   cursorPos: DOMPoint;
   mat: number[][];
-  marks: number[][];
+  marks: string[][];
   maxhv: number;
   transMat: DOMMatrix;
 
@@ -138,7 +138,7 @@ export class GhostBan {
       black: [],
     };
     this.mat = zeros([19, 19]);
-    this.marks = zeros([19, 19]);
+    this.marks = initMarks([19, 19]);
     this._turn = Ki.Black;
     this.cursor = [18, 0];
     this.cursorPos = new DOMPoint();
@@ -175,7 +175,7 @@ export class GhostBan {
 
   init(dom: HTMLElement) {
     this.mat = zeros([19, 19]);
-    this.marks = zeros([19, 19]);
+    this.marks = initMarks([19, 19]);
     this.transMat = new DOMMatrix();
     const canvas = document.createElement('canvas');
     canvas.style.position = 'absolute';
@@ -287,7 +287,7 @@ export class GhostBan {
     }
   }
 
-  render(mat?: number[][], marks?: number[][]) {
+  render(mat?: number[][], marks?: string[][]) {
     if (mat) this.mat = mat;
     if (marks) this.marks = marks;
     const {boardSize, zoom, extend, interactive, coordinate} = this.options;
@@ -353,8 +353,8 @@ export class GhostBan {
       if (coordinate) {
         this.drawCoordinate(visibleArea);
       }
-      this.drawStones(this.mat);
-      this.drawMarks(this.marks);
+      this.drawStones(mat ?? this.mat);
+      this.drawMarks(mat ?? this.mat, marks ?? this.marks);
       // ctx?.restore();
     }
   }
@@ -368,29 +368,32 @@ export class GhostBan {
     }
   };
 
-  drawMarks = (matrix: number[][]) => {
+  drawMarks = (mat: number[][], marks: string[][]) => {
+    console.log('marks', marks);
     const canvas = this.canvas;
     if (canvas) {
-      for (let i = 0; i < matrix.length; i++) {
-        for (let j = 0; j < matrix[i].length; j++) {
-          const value = matrix[i][j];
-          if (value !== 0) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              const {space, scaledPadding} = this.calcSpaceAndPadding();
-              const x = scaledPadding + i * space;
-              const y = scaledPadding + j * space;
-              ctx.beginPath();
-              ctx.arc(x, y, space * 0.3, 0, 2 * Math.PI, true);
-              ctx.lineWidth = 2;
-              if (value === 1) {
-                ctx.strokeStyle = '#fff';
-              } else {
+      for (let i = 0; i < marks.length; i++) {
+        for (let j = 0; j < marks[i].length; j++) {
+          const value = marks[i][j];
+          if (value !== null && value !== '') {
+            const {space, scaledPadding} = this.calcSpaceAndPadding();
+            const x = scaledPadding + i * space;
+            const y = scaledPadding + j * space;
+            if (value === Mark.Current) {
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.beginPath();
+                ctx.arc(x, y, space * 0.3, 0, 2 * Math.PI, true);
+                ctx.lineWidth = 2;
+                if (mat[i][j] === 1) {
+                  ctx.strokeStyle = '#fff';
+                } else {
+                  ctx.strokeStyle = '#000';
+                }
+                ctx.stroke();
+                ctx.lineWidth = 1;
                 ctx.strokeStyle = '#000';
               }
-              ctx.stroke();
-              ctx.lineWidth = 1;
-              ctx.strokeStyle = '#000';
             }
           }
         }

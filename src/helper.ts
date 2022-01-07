@@ -14,7 +14,6 @@ export const sgfToPos = (str: any) => {
   return {x: -1, y: -1, ki: 0};
 };
 
-// export const sgfOffset = (sgf, offset = 0, quadrant = 1) => {
 export const sgfOffset = (sgf: any, offset = 0) => {
   if (offset === 0) return sgf;
   const res = clone(sgf);
