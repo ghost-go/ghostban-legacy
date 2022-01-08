@@ -1,7 +1,6 @@
 import { Center } from './types';
 export declare const zeros: (size: [number, number]) => any[][];
-export declare const initMat: (size: [number, number]) => number[][];
-export declare const initMarks: (size: [number, number]) => string[][];
+export declare const empty: (size: [number, number]) => string[][];
 export declare const calcMost: (mat: number[][], boardSize?: number) => {
     leftMost: number;
     rightMost: number;

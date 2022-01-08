@@ -2,7 +2,7 @@
   /**
    * @license
    * author: Byron Bai
-   * ghostban.js v2.0.0-alpha.13
+   * ghostban.js v2.0.0-alpha.15
    * Released under the MIT license.
    */
 
