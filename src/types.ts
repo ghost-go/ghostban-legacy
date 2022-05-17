@@ -5,13 +5,13 @@ export enum Ki {
 }
 
 export enum Theme {
-  BlackAndWhite = 'Black&White',
-  Flat = 'Flat',
-  Subdued = 'Subdued',
-  ShellStone = 'Shell',
-  SlateAndShell = 'SlateAndShell',
-  Walnut = 'Walnet',
-  Photorealistic = 'Photorealistic',
+  BlackAndWhite = 'black-and-white',
+  Flat = 'flat',
+  Subdued = 'subdued',
+  ShellStone = 'shell',
+  SlateAndShell = 'slate-and-shell',
+  Walnut = 'walnet',
+  Photorealistic = 'photorealistic',
 }
 
 export enum Center {
@@ -22,9 +22,36 @@ export enum Center {
   Center = 'c',
 }
 
-export enum Mark {
+export enum Markup {
   Current = 'cu',
   Circle = 'ci',
   Square = 'sq',
   Triangle = 'tri',
+  Cross = 'cr',
+  Number = 'num',
+  Letter = 'le',
+  None = '',
 }
+
+import {
+  MoveProp,
+  SetupProp,
+  RootProp,
+  NodeAnnotationProp,
+  MoveAnnotationProp,
+  MarkupProp,
+} from './props';
+
+export type SgfNode = {
+  id: string;
+  name: string;
+  attributes: {
+    [key: string]: string;
+  };
+  moveProps: MoveProp[];
+  setupProps: SetupProp[];
+  rootProps: RootProp[];
+  markupProps: MarkupProp[];
+  nodeAnnotationProps: NodeAnnotationProp[];
+  moveAnnotationProps: MoveAnnotationProp[];
+};

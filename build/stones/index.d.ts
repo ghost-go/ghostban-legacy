@@ -1,2 +1,2 @@
-import BlackWhiteStone from './blackwhite-stone';
-export { BlackWhiteStone };
+export * from './bwStone';
+export * from './imageStone';

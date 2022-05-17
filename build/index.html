@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    body {
+      background: blue;
+    }
+
+  </style>
+  <body>
+    <h1>GhostGo</h1>
+  </body>
+  <script src="./index.min.js"></script>
+  <script>
+    function g() {
+      const SGF_LETTERS = [
+        'a',
+        'b',
+        'c',
+        'd',
+        'e',
+        'f',
+        'g',
+        'h',
+        'i',
+        'j',
+        'k',
+        'l',
+        'm',
+        'n',
+        'o',
+        'p',
+        'q',
+        'r',
+        's',
+      ];
+      const {GhostBan, Sgf, zeros, empty, move: moveStone} = ghostban
+      const g = new GhostBan({coordinate: false, background: true});
+      const sgf = new Sgf();
+      sgf.parse("(;FF[4]GM[1]CA[UTF-8]AP[ghostgo:0.1.0]SZ[19]ST[0];AB[ji]AW[kj]AW[jk]AW[ij]AW[ji]AB[ii]AB[hj]AB[ik]AB[sn]AB[rn]AB[qn]AB[po]AB[qp]AB[rp]AB[sp]AW[ro]AW[qo]AB[sg]AB[rg]AB[qg]AB[ph]AB[qi]AB[ri]AB[si]AW[rh]AW[qh]AW[pi]AW[qj]AW[rj]AW[sj]AW[fc]AW[gd]AW[fe]AW[ed]AB[ec]AB[dd]AB[ee]AB[lc]AB[md]AB[le]AB[kd]AW[kc]AW[jd]AW[ke];B[jj];W[ld];B[fd];W[ij];B[kd];W[ed];B[jj];W[ld];B[fd];W[nj];B[nl];W[lm];B[jm];W[nm];B[no];W[lp];B[ip];W[gm];B[ej];W[fg];B[lh];W[qf];B[if];W[mg];B[pe];W[og];B[ne];W[pc];B[rc];W[di];B[jp];W[bc];B[bg];W[cm];B[dm];W[eh];B[db];W[er];B[ss];W[ia];B[ma];W[pb]TR[ho]TR[jr]TR[mr]TR[oq]TR[cq];B[he];W[hg];B[gj];W[fl];B[go])");
+      const dom = document.createElement("div");
+      document.body.appendChild(dom);
+      let node = sgf.root;
+      while (node && node.hasChildren()) {
+        node = node.children[0];
+      }
+      const path = node.getPath();
+      let mat = zeros([19, 19]);
+      let li, lj;
+      const markup = empty([19, 19]);
+      path.forEach((node) => {
+        const { moveProps, setupProps } = node.model;
+        moveProps.forEach((move) => {
+          const i = SGF_LETTERS.indexOf(move.value[0]);
+          const j = SGF_LETTERS.indexOf(move.value[1]);
+          li = i;
+          lj = j;
+          mat = moveStone(mat, i, j, move.token === 'B' ? 1 : -1);
+        });
+        setupProps.forEach((setup) => {
+          const i = SGF_LETTERS.indexOf(setup.value[0]);
+          const j = SGF_LETTERS.indexOf(setup.value[1]);
+          mat[i][j] = setup.token === 'AB' ? 1 : -1;
+        });
+      });
+
+      g.init(dom)
+      var canvas = g.canvas;
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      g.render(mat, markup);
+      return g.canvas.toDataURL();
+
+    }
+    g();
+
+  </script>
+</html>

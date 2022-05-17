@@ -7,10 +7,10 @@ export declare const calcMost: (mat: number[][], boardSize?: number) => {
     topMost: number;
     bottomMost: number;
 };
-export declare const calcCenter: (mat: number[][], boardSize?: number) => Center.TopRight | Center.TopLeft | Center.BottomLeft | Center.BottomRight | undefined;
+export declare const calcCenter: (mat: number[][], boardSize?: number) => Center;
 export declare const calcVisibleArea: (mat: number[][], boardSize?: number, extend?: number) => {
     visibleArea: number[][];
-    center: Center | undefined;
+    center: Center;
 };
 export declare function canMove(mat: number[][], i: number, j: number, ki: number): boolean;
 export declare function move(mat: number[][], i: number, j: number, ki: number): number[][];

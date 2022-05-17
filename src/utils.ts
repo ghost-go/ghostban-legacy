@@ -41,6 +41,7 @@ export const calcCenter = (mat: number[][], boardSize = 19) => {
   if (!top && left) return Center.BottomLeft;
   if (top && !left) return Center.TopRight;
   if (!top && !left) return Center.BottomRight;
+  return Center.Center;
 };
 
 export const calcVisibleArea = (
@@ -55,7 +56,7 @@ export const calcVisibleArea = (
     [0, 18],
   ];
   let visibleSize = boardSize - 1;
-  if (center == Center.TopLeft) {
+  if (center === Center.TopLeft) {
     visibleSize = Math.min(
       Math.max(rightMost, bottomMost) + extend,
       boardSize - 1
@@ -64,7 +65,7 @@ export const calcVisibleArea = (
       [0, visibleSize],
       [0, visibleSize],
     ];
-  } else if (center == Center.TopRight) {
+  } else if (center === Center.TopRight) {
     visibleSize = Math.min(
       Math.max(bottomMost + extend, boardSize - 1 - (leftMost - extend)),
       boardSize - 1
@@ -73,7 +74,7 @@ export const calcVisibleArea = (
       [boardSize - 1 - visibleSize, 18],
       [0, visibleSize],
     ];
-  } else if (center == Center.BottomLeft) {
+  } else if (center === Center.BottomLeft) {
     visibleSize = Math.min(
       Math.max(boardSize - 1 - (topMost - extend), rightMost + extend),
       boardSize - 1
@@ -82,7 +83,7 @@ export const calcVisibleArea = (
       [0, visibleSize],
       [boardSize - 1 - visibleSize, 18],
     ];
-  } else if (center == Center.BottomRight) {
+  } else if (center === Center.BottomRight) {
     visibleSize = Math.min(
       Math.max(
         boardSize - 1 - (topMost - extend),
@@ -90,7 +91,7 @@ export const calcVisibleArea = (
       ),
       boardSize - 1
     );
-    console.log('vs', visibleSize);
+    // console.log('vs', visibleSize);
     visibleArea = [
       [boardSize - 1 - visibleSize, 18],
       [boardSize - 1 - visibleSize, 18],
@@ -223,6 +224,7 @@ function canPonnuki(mat: number[][], i: number, j: number, ki: number) {
 }
 
 export function canMove(mat: number[][], i: number, j: number, ki: number) {
+  if (i < 0 || j < 0) return true;
   const newMat = cloneDeep(mat);
   if (newMat[i][j] !== 0) {
     return false;
@@ -243,6 +245,7 @@ export function canMove(mat: number[][], i: number, j: number, ki: number) {
 }
 
 export function move(mat: number[][], i: number, j: number, ki: number) {
+  if (i < 0 || j < 0) return mat;
   const newMat = cloneDeep(mat);
   newMat[i][j] = ki;
   return execPonnuki(newMat, i, j, -ki);

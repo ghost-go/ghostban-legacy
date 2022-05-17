@@ -1,21 +1,24 @@
-export default class Stone {
+export default class Markup {
   ctx: CanvasRenderingContext2D;
   x: number;
   y: number;
-  r: number;
+  s: number;
   ki: number;
+  val: string | number;
   constructor(
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
-    r: number,
-    ki: number
+    s: number,
+    ki: number,
+    val: string | number = ''
   ) {
     this.ctx = ctx;
     this.x = x;
     this.y = y;
-    this.r = r;
+    this.s = s;
     this.ki = ki;
+    this.val = val;
   }
   draw() {
     console.log('TBD');

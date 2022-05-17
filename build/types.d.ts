@@ -4,13 +4,13 @@ export declare enum Ki {
     Empty = 0
 }
 export declare enum Theme {
-    BlackAndWhite = "Black&White",
-    Flat = "Flat",
-    Subdued = "Subdued",
-    ShellStone = "Shell",
-    SlateAndShell = "SlateAndShell",
-    Walnut = "Walnet",
-    Photorealistic = "Photorealistic"
+    BlackAndWhite = "black-and-white",
+    Flat = "flat",
+    Subdued = "subdued",
+    ShellStone = "shell",
+    SlateAndShell = "slate-and-shell",
+    Walnut = "walnet",
+    Photorealistic = "photorealistic"
 }
 export declare enum Center {
     TopRight = "tr",
@@ -19,9 +19,27 @@ export declare enum Center {
     BottomRight = "br",
     Center = "c"
 }
-export declare enum Mark {
+export declare enum Markup {
     Current = "cu",
     Circle = "ci",
     Square = "sq",
-    Triangle = "tri"
+    Triangle = "tri",
+    Cross = "cr",
+    Number = "num",
+    Letter = "le",
+    None = ""
 }
+import { MoveProp, SetupProp, RootProp, NodeAnnotationProp, MoveAnnotationProp, MarkupProp } from './props';
+export declare type SgfNode = {
+    id: string;
+    name: string;
+    attributes: {
+        [key: string]: string;
+    };
+    moveProps: MoveProp[];
+    setupProps: SetupProp[];
+    rootProps: RootProp[];
+    markupProps: MarkupProp[];
+    nodeAnnotationProps: NodeAnnotationProp[];
+    moveAnnotationProps: MoveAnnotationProp[];
+};

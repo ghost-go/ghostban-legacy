@@ -1,41 +1,19 @@
-import {A1_LETTERS, A1_NUMBERS} from './const';
+import _ from 'lodash';
+import {A1_LETTERS, A1_NUMBERS, RESOURCES} from './const';
 import {Theme, Ki} from './types';
 import {zeros, empty} from './utils';
 
-import SubduedBoard from './assets/images/theme/subdued/board.png';
-import SubduedWhite from './assets/images/theme/subdued/white.png';
-import SubduedBlack from './assets/images/theme/subdued/black.png';
-
-// import ShellBoard from './assets/images/theme/shell-stone/board.png';
-// import ShellBlack from './assets/images/theme/shell-stone/black.png';
-// import ShellWhite0 from './assets/images/theme/shell-stone/white0.png';
-// import ShellWhite1 from './assets/images/theme/shell-stone/white1.png';
-// import ShellWhite2 from './assets/images/theme/shell-stone/white2.png';
-// import ShellWhite3 from './assets/images/theme/shell-stone/white3.png';
-// import ShellWhite4 from './assets/images/theme/shell-stone/white4.png';
-
-// import SlateAndShellBoard from './assets/images/theme/slate-and-shell/board.png';
-
-// import SlateAndShellBlack0 from './assets/images/theme/slate-and-shell/slate1.png';
-// import SlateAndShellBlack1 from './assets/images/theme/slate-and-shell/slate2.png';
-// import SlateAndShellBlack2 from './assets/images/theme/slate-and-shell/slate3.png';
-// import SlateAndShellBlack3 from './assets/images/theme/slate-and-shell/slate4.png';
-// import SlateAndShellBlack4 from './assets/images/theme/slate-and-shell/slate5.png';
-// import SlateAndShellWhite0 from './assets/images/theme/slate-and-shell/shell1.png';
-// import SlateAndShellWhite1 from './assets/images/theme/slate-and-shell/shell2.png';
-// import SlateAndShellWhite2 from './assets/images/theme/slate-and-shell/shell3.png';
-// import SlateAndShellWhite3 from './assets/images/theme/slate-and-shell/shell4.png';
-// import SlateAndShellWhite4 from './assets/images/theme/slate-and-shell/shell5.png';
-
-// import WalnutBoard from './assets/images/theme/walnut/board.jpg';
-// import WalnutBlack from './assets/images/theme/walnut/black.png';
-// import WalnutWhite from './assets/images/theme/walnut/white.png';
-
-// import PhotorealisticBoard from './assets/images/theme/photorealistic/board.png';
-// import PhotorealisticBlack from './assets/images/theme/photorealistic/black.png';
-// import PhotorealisticWhite from './assets/images/theme/photorealistic/white.png';
-import {Center, Mark} from './types';
+import {Center, Markup} from './types';
 import {calcVisibleArea} from './utils';
+import {ImageStone} from './stones';
+import BwStone from './stones/bwStone';
+import {
+  CircleMarkup,
+  CrossMarkup,
+  TextMarkup,
+  SquareMarkup,
+  TriangleMarkup,
+} from './markups';
 
 // const devicePixelRatio = window.devicePixelRatio;
 let devicePixelRatio = 1.0;
@@ -44,59 +22,45 @@ if (typeof window !== 'undefined') {
   // browser code
 }
 
-const Resources = {
-  [Theme.Subdued]: {
-    board: SubduedBoard,
-    black: [SubduedBlack],
-    white: [SubduedWhite],
-  },
-  // [Theme.ShellStone]: {
-  //   board: ShellBoard,
-  //   black: [ShellBlack],
-  //   white: [ShellWhite0, ShellWhite1, ShellWhite2, ShellWhite3, ShellWhite4],
-  // },
-  // [Theme.SlateAndShell]: {
-  //   board: SlateAndShellBoard,
-  //   black: [
-  //     SlateAndShellBlack0,
-  //     SlateAndShellBlack1,
-  //     SlateAndShellBlack2,
-  //     SlateAndShellBlack3,
-  //     SlateAndShellBlack4,
-  //   ],
-  //   white: [
-  //     SlateAndShellWhite0,
-  //     SlateAndShellWhite1,
-  //     SlateAndShellWhite2,
-  //     SlateAndShellWhite3,
-  //     SlateAndShellWhite4,
-  //   ],
-  // },
-  // [Theme.Walnut]: {
-  //   board: WalnutBoard,
-  //   black: [WalnutBlack],
-  //   white: [WalnutWhite],
-  // },
-  // [Theme.Photorealistic]: {
-  //   board: PhotorealisticBoard,
-  //   black: [PhotorealisticBlack],
-  //   white: [PhotorealisticWhite],
-  // },
-};
+const images: {
+  [key: string]: HTMLImageElement;
+} = {};
+
+function preload(urls: string[], done: () => void) {
+  let loaded = 0;
+  const imageLoaded = () => {
+    loaded++;
+    if (loaded === urls.length) {
+      done();
+    }
+  };
+  for (let i = 0; i < urls.length; i++) {
+    if (!images[urls[i]]) {
+      images[urls[i]] = new Image();
+      images[urls[i]].src = urls[i];
+      images[urls[i]].onload = function () {
+        imageLoaded();
+      };
+      images[urls[i]].onerror = function () {
+        imageLoaded();
+      };
+    }
+  }
+}
 
 export type GhostBanOptions = {
   boardSize: number;
   size?: number;
-  // theme: Stone;
   padding: number;
   zoom?: boolean;
   extend: number;
-  theme?: Theme;
+  theme: Theme;
   coordinate: boolean;
   interactive: boolean;
+  background?: boolean;
 };
 
-type GhostBanOptionsParams = {
+export type GhostBanOptionsParams = {
   boardSize?: number;
   size?: number;
   padding?: number;
@@ -105,52 +69,47 @@ type GhostBanOptionsParams = {
   theme?: Theme;
   interactive?: boolean;
   coordinate?: boolean;
+  background?: boolean;
 };
 
 export class GhostBan {
-  options: GhostBanOptions = {
+  defaultOptions: GhostBanOptions = {
     boardSize: 19,
     padding: 10,
     extend: 2,
     interactive: false,
     coordinate: true,
+    background: false,
+    theme: Theme.BlackAndWhite,
   };
+  options: GhostBanOptions;
   dom: HTMLElement | undefined;
   canvas?: HTMLCanvasElement;
-  resources: {
-    board: HTMLImageElement | null;
-    white: HTMLImageElement[];
-    black: HTMLImageElement[];
-  };
+  board?: HTMLCanvasElement;
   private _turn: Ki;
   cursor: [number, number];
   cursorPos: DOMPoint;
   mat: number[][];
-  marks: string[][];
+  markup: (string | number)[][];
   maxhv: number;
   transMat: DOMMatrix;
 
-  constructor(options?: GhostBanOptionsParams) {
-    const defaultOptions = this.options;
-    this.resources = {
-      board: null,
-      white: [],
-      black: [],
+  constructor(options: GhostBanOptionsParams = {}) {
+    this.options = {
+      ...this.defaultOptions,
+      ...options,
     };
     this.mat = zeros([19, 19]);
-    this.marks = empty([19, 19]);
+    this.markup = empty([19, 19]);
     this._turn = Ki.Black;
     this.cursor = [18, 0];
     this.cursorPos = new DOMPoint();
     this.maxhv = this.options.boardSize;
     this.transMat = new DOMMatrix();
+  }
 
-    if (options) {
-      this.options = {
-        ...defaultOptions,
-        ...options,
-      };
-    }
+  getCanvas() {
+    return this.canvas;
   }
 
   setTurn(turn: Ki) {
@@ -158,32 +117,52 @@ export class GhostBan {
   }
 
   resize() {
-    if (!this.canvas || !this.dom) return;
-    const canvas = this.canvas;
+    if (!this.canvas || !this.dom || !this.board) return;
+    const {canvas, board} = this;
     const {size} = this.options;
     if (size) {
-      canvas.width = size;
-      canvas.height = size;
+      canvas.width = size * devicePixelRatio;
+      canvas.height = size * devicePixelRatio;
+      board.width = size * devicePixelRatio;
+      board.height = size * devicePixelRatio;
     } else {
       const {clientWidth} = this.dom;
       canvas.style.width = clientWidth + 'px';
       canvas.style.height = clientWidth + 'px';
       canvas.width = Math.floor(clientWidth * devicePixelRatio);
       canvas.height = Math.floor(clientWidth * devicePixelRatio);
+      board.style.width = clientWidth + 'px';
+      board.style.height = clientWidth + 'px';
+      board.width = Math.floor(clientWidth * devicePixelRatio);
+      board.height = Math.floor(clientWidth * devicePixelRatio);
     }
   }
 
   init(dom: HTMLElement) {
     this.mat = zeros([19, 19]);
-    this.marks = empty([19, 19]);
+    this.markup = empty([19, 19]);
     this.transMat = new DOMMatrix();
+    const board = document.createElement('canvas');
+    board.style.position = 'absolute';
+    this.board = board;
+
     const canvas = document.createElement('canvas');
     canvas.style.position = 'absolute';
     this.canvas = canvas;
     this.dom = dom;
+
+    // const ctx = canvas.getContext('2d');
+    // if (ctx) {
+    //   ctx.imageSmoothingQuality = 'high';
+    // }
+
     this.resize();
     dom.firstChild?.remove();
+    dom.firstChild?.remove();
+
+    dom.appendChild(board);
     dom.appendChild(canvas);
+
     this.renderInteractive();
   }
 
@@ -206,7 +185,7 @@ export class GhostBan {
       const p = this.transMat.transformPoint(new DOMPoint(xx, yy));
       this.cursorPos = p;
       this.cursor = [idx - 1, idy - 1];
-      this.render(this.mat, this.marks);
+      this.render(this.mat, this.markup);
     };
     const onTouchMove = (e: TouchEvent) => {
       e.preventDefault();
@@ -236,66 +215,41 @@ export class GhostBan {
   }
 
   setTheme(theme: Theme) {
-    if (this.options.theme === theme) return;
-    const shadowStyle = '3px 3px 3px #aaaaaa';
-    const canvas = this.canvas;
-    if (canvas) {
-      this.options.theme = theme;
-      if (theme === Theme.BlackAndWhite) {
-        canvas.style.boxShadow = '0px 0px 0px #000000';
-      } else if (
-        theme === Theme.Subdued
-        // ||
-        // theme === Theme.Photorealistic ||
-        // theme === Theme.ShellStone ||
-        // theme === Theme.SlateAndShell ||
-        // theme === Theme.Walnut
-      ) {
-        const board = new Image();
-        const boardTheme = Resources[theme];
-        board.src = boardTheme.board; // Set source path
-
-        const blacks = Resources[theme].black.map(i => {
-          const img = new Image();
-          img.src = i;
-          return img;
-        });
-        const whites = Resources[theme].white.map(i => {
-          const img = new Image();
-          img.src = i;
-          return img;
-        });
-        Promise.all(
-          Array.from([board, ...blacks, ...whites])
-            .filter(img => !img.complete)
-            .map(
-              img =>
-                new Promise(resolve => {
-                  img.onload = img.onerror = resolve;
-                })
-            )
-        ).then(() => {
-          this.resources.black = blacks;
-          this.resources.white = whites;
-          this.resources.board = board;
-          this.render(this.mat, this.marks);
-        });
-      } else {
-        this.options.theme = Theme.Flat;
-        canvas.style.boxShadow = shadowStyle;
+    const {board, blacks, whites} = RESOURCES[theme];
+    preload(_.compact([board, ...blacks, ...whites]), () => {
+      const shadowStyle = '3px 3px 3px #aaaaaa';
+      const canvas = this.canvas;
+      if (canvas) {
+        this.options.theme = theme;
+        if (theme === Theme.BlackAndWhite) {
+          canvas.style.boxShadow = '0px 0px 0px #000000';
+        } else if (theme === Theme.Flat) {
+          canvas.style.boxShadow = shadowStyle;
+        }
+        setTimeout(() => {
+          this.render(this.mat, this.markup);
+        }, 0);
       }
-    }
+    });
+    setTimeout(() => {
+      this.options.theme = theme;
+      this.render(this.mat, this.markup);
+    }, 0);
   }
 
-  render(mat?: number[][], marks?: string[][]) {
+  render(mat?: number[][], markup?: (string | number)[][]) {
     if (mat) this.mat = mat;
-    if (marks) this.marks = marks;
+    if (markup) this.markup = markup;
     const {boardSize, zoom, extend, interactive, coordinate} = this.options;
     const canvas = this.canvas;
     if (canvas) {
       this.resize();
       this.clearCanvas();
       const ctx = canvas.getContext('2d');
+      if (ctx && this.options.background) {
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
 
       const {visibleArea: zoomedVisibleArea, center} = calcVisibleArea(
         this.mat,
@@ -354,7 +308,7 @@ export class GhostBan {
         this.drawCoordinate(visibleArea);
       }
       this.drawStones(mat ?? this.mat);
-      this.drawMarks(mat ?? this.mat, marks ?? this.marks);
+      this.drawMarkup(mat ?? this.mat, markup ?? this.markup);
       // ctx?.restore();
     }
   }
@@ -368,32 +322,47 @@ export class GhostBan {
     }
   };
 
-  drawMarks = (mat: number[][], marks: string[][]) => {
-    console.log('marks', marks);
+  drawMarkup = (mat: number[][], markup: (string | number)[][]) => {
+    // console.log('markup', markup);
     const canvas = this.canvas;
     if (canvas) {
-      for (let i = 0; i < marks.length; i++) {
-        for (let j = 0; j < marks[i].length; j++) {
-          const value = marks[i][j];
+      for (let i = 0; i < markup.length; i++) {
+        for (let j = 0; j < markup[i].length; j++) {
+          const value = markup[i][j];
           if (value !== null && value !== '') {
             const {space, scaledPadding} = this.calcSpaceAndPadding();
             const x = scaledPadding + i * space;
             const y = scaledPadding + j * space;
-            if (value === Mark.Current) {
-              const ctx = canvas.getContext('2d');
-              if (ctx) {
-                ctx.beginPath();
-                ctx.arc(x, y, space * 0.3, 0, 2 * Math.PI, true);
-                ctx.lineWidth = 2;
-                if (mat[i][j] === 1) {
-                  ctx.strokeStyle = '#fff';
-                } else {
-                  ctx.strokeStyle = '#000';
+            const ki = mat[i][j];
+            let markup;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              switch (value) {
+                case Markup.Circle:
+                case Markup.Current: {
+                  markup = new CircleMarkup(ctx, x, y, space, ki);
+                  break;
                 }
-                ctx.stroke();
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = '#000';
+                case Markup.Square: {
+                  markup = new SquareMarkup(ctx, x, y, space, ki);
+                  break;
+                }
+                case Markup.Triangle: {
+                  markup = new TriangleMarkup(ctx, x, y, space, ki);
+                  break;
+                }
+                case Markup.Cross: {
+                  markup = new CrossMarkup(ctx, x, y, space, ki);
+                  break;
+                }
+                default: {
+                  if (value !== '') {
+                    markup = new TextMarkup(ctx, x, y, space, ki, value);
+                  }
+                  break;
+                }
               }
+              markup?.draw();
             }
           }
         }
@@ -402,33 +371,34 @@ export class GhostBan {
   };
 
   drawBan = () => {
-    const {canvas} = this;
+    const {board} = this;
     const {theme} = this.options;
-    if (canvas) {
-      canvas.style.borderRadius = '2px';
-      const ctx = canvas.getContext('2d');
+    if (board) {
+      board.style.borderRadius = '2px';
+      const ctx = board.getContext('2d');
       if (ctx) {
         if (theme === Theme.BlackAndWhite) {
-          canvas.style.boxShadow = '0px 0px 0px #000000';
+          board.style.boxShadow = '0px 0px 0px #000000';
         } else if (theme === Theme.Flat) {
           ctx.fillStyle = '#ECB55A';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-        } else if (theme === Theme.Walnut) {
-          if (this.resources.board) {
-            ctx.drawImage(
-              this.resources.board,
-              0,
-              0,
-              canvas.width,
-              canvas.height
-            );
+          ctx.fillRect(0, 0, board.width, board.height);
+        } else if (
+          theme === Theme.Walnut &&
+          RESOURCES[theme].board !== undefined
+        ) {
+          const boardUrl = RESOURCES[theme].board || '';
+          const boardRes = images[boardUrl];
+          if (boardRes) {
+            ctx.drawImage(boardRes, 0, 0, board.width, board.height);
           }
         } else {
-          if (this.resources.board) {
-            const pattern = ctx.createPattern(this.resources.board, 'repeat');
+          const boardUrl = RESOURCES[theme].board || '';
+          const image = images[boardUrl];
+          if (image) {
+            const pattern = ctx.createPattern(image, 'repeat');
             if (pattern) {
               ctx.fillStyle = pattern;
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.fillRect(0, 0, board.width, board.height);
             }
           }
         }
@@ -573,29 +543,31 @@ export class GhostBan {
 
       if (ctx) {
         const size = space * 0.4;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, 2 * Math.PI, true);
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.6;
-        if (this._turn === Ki.Black) {
-          ctx.strokeStyle = '#000';
-          ctx.fillStyle = '#000';
-        } else if (this._turn === Ki.White) {
-          ctx.strokeStyle = '#FFF';
-          ctx.fillStyle = '#FFF';
+        if (size > 0) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, 2 * Math.PI, true);
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = 0.6;
+          if (this._turn === Ki.Black) {
+            ctx.strokeStyle = '#000';
+            ctx.fillStyle = '#000';
+          } else if (this._turn === Ki.White) {
+            ctx.strokeStyle = '#FFF';
+            ctx.fillStyle = '#FFF';
+          }
+          ctx.fill();
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+          ctx.restore();
         }
-        ctx.fill();
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-        ctx.restore();
       }
     }
   };
 
   drawStones = (matrix: number[][]) => {
     const canvas = this.canvas;
-    const {theme} = this.options;
+    const {theme = Theme.BlackAndWhite} = this.options;
     if (canvas) {
       for (let i = 0; i < matrix.length; i++) {
         for (let j = 0; j < matrix[i].length; j++) {
@@ -619,31 +591,31 @@ export class GhostBan {
                 ctx.shadowColor = '#555';
                 ctx.shadowBlur = 8;
               }
-              if (theme === Theme.BlackAndWhite || theme === Theme.Flat) {
-                ctx.beginPath();
-                ctx.arc(x, y, space * ratio, 0, 2 * Math.PI, true);
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = '#000';
-                if (value === 1) {
-                  ctx.fillStyle = '#000';
-                } else if (value === -1) {
-                  ctx.fillStyle = '#fff';
+              let stone;
+              switch (theme) {
+                case Theme.BlackAndWhite:
+                case Theme.Flat: {
+                  stone = new BwStone(ctx, x, y, space * ratio, value);
+                  break;
                 }
-                ctx.fill();
-                ctx.stroke();
-              } else {
-                const mod = i + 10 + j;
-                let img;
-                if (value === 1) {
-                  img = this.resources.black[mod % this.resources.black.length];
-                } else {
-                  img = this.resources.white[mod % this.resources.white.length];
-                }
-                if (img) {
-                  const size = space * ratio * 2;
-                  ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
+                default: {
+                  const blacks = RESOURCES[theme].blacks.map(i => images[i]);
+                  const whites = RESOURCES[theme].whites.map(i => images[i]);
+                  const r = space * ratio;
+                  const mod = i + 10 + j;
+                  stone = new ImageStone(
+                    ctx,
+                    x,
+                    y,
+                    r,
+                    value,
+                    mod,
+                    blacks,
+                    whites
+                  );
                 }
               }
+              stone.draw();
               ctx.restore();
             }
           }
