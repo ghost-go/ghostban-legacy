@@ -1,6 +1,8 @@
 import chunk from 'lodash/chunk';
 import {Theme} from './types';
 
+const settings = {cdn: 'https://s.shaowq.com'};
+
 export const A1_LETTERS = [
   'A',
   'B',
@@ -21,6 +23,27 @@ export const A1_LETTERS = [
   'R',
   'S',
   'T',
+];
+export const A1_LETTERS_WITH_I = [
+  'A',
+  'B',
+  'C',
+  'D',
+  'E',
+  'F',
+  'G',
+  'H',
+  'I',
+  'J',
+  'K',
+  'L',
+  'M',
+  'N',
+  'O',
+  'P',
+  'Q',
+  'R',
+  'S',
 ];
 export const A1_NUMBERS = [
   19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
@@ -61,73 +84,50 @@ export const RESOURCES: {
     whites: [],
   },
   [Theme.Subdued]: {
-    board:
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/subdued/board.png',
-    blacks: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/subdued/black.png',
-    ],
-    whites: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/subdued/white.png',
-    ],
+    board: `${settings.cdn}/assets/theme/subdued/board.png`,
+    blacks: [`${settings.cdn}/assets/theme/subdued/black.png`],
+    whites: [`${settings.cdn}/assets/theme/subdued/white.png`],
   },
   [Theme.ShellStone]: {
-    board:
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/shell-stone/board.png',
-    blacks: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/shell-stone/black.png',
-    ],
+    board: `${settings.cdn}/assets/theme/shell-stone/board.png`,
+    blacks: [`${settings.cdn}/assets/theme/shell-stone/black.png`],
     whites: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/shell-stone/white0.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/shell-stone/white1.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/shell-stone/white2.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/shell-stone/white3.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/shell-stone/white4.png',
+      `${settings.cdn}/assets/theme/shell-stone/white0.png`,
+      `${settings.cdn}/assets/theme/shell-stone/white1.png`,
+      `${settings.cdn}/assets/theme/shell-stone/white2.png`,
+      `${settings.cdn}/assets/theme/shell-stone/white3.png`,
+      `${settings.cdn}/assets/theme/shell-stone/white4.png`,
     ],
   },
   [Theme.SlateAndShell]: {
-    board:
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/slate-and-shell/board.png',
+    board: `${settings.cdn}/assets/theme/slate-and-shell/board.png`,
     blacks: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/slate-and-shell/slate1.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/slate-and-shell/slate2.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/slate-and-shell/slate3.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/slate-and-shell/slate4.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/slate-and-shell/slate5.png',
+      `${settings.cdn}/assets/theme/slate-and-shell/slate1.png`,
+      `${settings.cdn}/assets/theme/slate-and-shell/slate2.png`,
+      `${settings.cdn}/assets/theme/slate-and-shell/slate3.png`,
+      `${settings.cdn}/assets/theme/slate-and-shell/slate4.png`,
+      `${settings.cdn}/assets/theme/slate-and-shell/slate5.png`,
     ],
     whites: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/slate-and-shell/shell1.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/slate-and-shell/shell2.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/slate-and-shell/shell3.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/slate-and-shell/shell4.png',
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/slate-and-shell/shell5.png',
+      `${settings.cdn}/assets/theme/slate-and-shell/shell1.png`,
+      `${settings.cdn}/assets/theme/slate-and-shell/shell2.png`,
+      `${settings.cdn}/assets/theme/slate-and-shell/shell3.png`,
+      `${settings.cdn}/assets/theme/slate-and-shell/shell4.png`,
+      `${settings.cdn}/assets/theme/slate-and-shell/shell5.png`,
     ],
   },
   [Theme.Walnut]: {
-    board:
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/walnut/board.jpg',
-    blacks: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/walnut/black.png',
-    ],
-    whites: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/walnut/white.png',
-    ],
+    board: `${settings.cdn}/assets/theme/walnut/board.jpg`,
+    blacks: [`${settings.cdn}/assets/theme/walnut/black.png`],
+    whites: [`${settings.cdn}/assets/theme/walnut/white.png`],
   },
   [Theme.Photorealistic]: {
-    board:
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/photorealistic/board.png',
-    blacks: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/photorealistic/black.png',
-    ],
-    whites: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/photorealistic/white.png',
-    ],
+    board: `${settings.cdn}/assets/theme/photorealistic/board.png`,
+    blacks: [`${settings.cdn}/assets/theme/photorealistic/black.png`],
+    whites: [`${settings.cdn}/assets/theme/photorealistic/white.png`],
   },
   [Theme.Flat]: {
-    blacks: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/flat/black.svg',
-    ],
-    whites: [
-      'https://ghost-go.oss-cn-beijing.aliyuncs.com/themes/flat/white.svg',
-    ],
+    blacks: [],
+    whites: [],
   },
 };

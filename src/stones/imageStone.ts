@@ -22,6 +22,7 @@ export class ImageStone extends Stone {
 
   draw() {
     const {ctx, x, y, r, ki, blacks, whites, mod} = this;
+    if (r <= 0) return;
     let img;
     if (ki === 1) {
       img = blacks[mod % blacks.length];

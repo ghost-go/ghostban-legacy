@@ -1,23 +1,31 @@
-import _ from 'lodash';
+import {compact, replace} from 'lodash';
+import matchAll from 'string.prototype.matchall';
+
 import TreeModel from 'tree-model';
 import {
   MoveProp,
   SetupProp,
   RootProp,
+  GameInfoProp,
   SgfPropBase,
   NodeAnnotationProp,
   MoveAnnotationProp,
   MarkupProp,
+  CustomProp,
   ROOT_PROP_LIST,
   MOVE_PROP_LIST,
   SETUP_PROP_LIST,
   MARKUP_PROP_LIST,
   NODE_ANNOTATION_PROP_LIST,
   MOVE_ANNOTATION_PROP_LIST,
+  GAME_INFO_PROP_LIST,
+  CUSTOM_PROP_LIST,
 } from './props';
 import type {SgfNode} from './types';
+import {getDeduplicatedProps, getNodeNumber} from '../helper';
+import {calcSHA} from '../helper';
 
-export class Sgf {
+export default class Sgf {
   NEW_NODE = ';';
   BRANCHING = ['(', ')'];
   PROPERTY = ['[', ']'];
@@ -55,20 +63,24 @@ export class Sgf {
 
   nodeToString(node: any) {
     let content = '';
-    node.walk({strategy: 'pre'}, (n: TreeModel.Node<SgfNode>) => {
+    node.walk((n: TreeModel.Node<SgfNode>) => {
       const {
         rootProps,
         moveProps,
+        customProps,
         setupProps,
         markupProps,
         nodeAnnotationProps,
         moveAnnotationProps,
+        gameInfoProps,
       } = n.model;
-      const nodes = _.compact([
+      const nodes = compact([
         ...rootProps,
+        ...customProps,
         ...moveProps,
-        ...setupProps,
-        ...markupProps,
+        ...getDeduplicatedProps(setupProps),
+        ...getDeduplicatedProps(markupProps),
+        ...gameInfoProps,
         ...nodeAnnotationProps,
         ...moveAnnotationProps,
       ]);
@@ -90,10 +102,16 @@ export class Sgf {
     return `(${this.nodeToString(this.root)})`;
   }
 
+  toSgfWithoutAnalysis() {
+    const sgf = `(${this.nodeToString(this.root)})`;
+    return replace(sgf, /](A\[.*?\])/g, ']');
+  }
+
   parse(sgf: string) {
-    sgf = sgf.replace(/(\r\n|\n|\r)/gm, '');
+    if (!sgf) return;
+    // sgf = sgf.replace(/(\r\n|\n|\r)/gm, '');
     let nodeStart = 0;
-    const counter = 0;
+    let counter = 0;
     const stack: TreeModel.Node<SgfNode>[] = [];
 
     for (let i = 0; i < sgf.length; i++) {
@@ -105,15 +123,19 @@ export class Sgf {
           const setupProps: SetupProp[] = [];
           const rootProps: RootProp[] = [];
           const markupProps: MarkupProp[] = [];
+          const gameInfoProps: GameInfoProp[] = [];
           const nodeAnnotationProps: NodeAnnotationProp[] = [];
           const moveAnnotationProps: MoveAnnotationProp[] = [];
+          const customProps: CustomProp[] = [];
 
           const matches = [
-            ...content.matchAll(
+            ...matchAll(
+              content,
               // eslint-disable-next-line no-useless-escape
               // RegExp(/([A-Z]+\[[a-z\[\]]*\]+)/, 'g')
               // RegExp(/([A-Z]+\[.*?\]+)/, 'g')
-              RegExp(/[A-Z]+(\[.*?\]){1,}/, 'g')
+              // RegExp(/[A-Z]+(\[.*?\]){1,}/, 'g')
+              RegExp(/[A-Z]+(\[[\s\S]*?\]){1,}/, 'g')
             ),
           ];
 
@@ -129,33 +151,46 @@ export class Sgf {
                 rootProps.push(RootProp.from(m[0]));
               if (MARKUP_PROP_LIST.includes(token))
                 markupProps.push(MarkupProp.from(m[0]));
-              if (NODE_ANNOTATION_PROP_LIST.includes(token))
+              if (GAME_INFO_PROP_LIST.includes(token))
+                gameInfoProps.push(GameInfoProp.from(m[0]));
+              if (NODE_ANNOTATION_PROP_LIST.includes(token)) {
                 nodeAnnotationProps.push(NodeAnnotationProp.from(m[0]));
+              }
               if (MOVE_ANNOTATION_PROP_LIST.includes(token))
                 moveAnnotationProps.push(MoveAnnotationProp.from(m[0]));
+              if (CUSTOM_PROP_LIST.includes(token))
+                customProps.push(CustomProp.from(m[0]));
             }
           });
 
           if (matches.length > 0) {
-            const node = this.tree.parse({
-              name: counter,
-              number: counter,
+            const sha = calcSHA(this.currentNode, moveProps, setupProps);
+            const node = this.tree.parse<SgfNode>({
+              id: sha,
+              name: sha,
+              index: counter,
+              number: 0,
               moveProps,
               setupProps,
               rootProps,
               markupProps,
+              gameInfoProps,
               nodeAnnotationProps,
               moveAnnotationProps,
+              customProps,
             });
 
             if (this.currentNode) {
               this.currentNode.addChild(node);
+
+              node.model.number = getNodeNumber(node);
               node.model.children = [node];
             } else {
               this.root = node;
               this.parentNode = node;
             }
             this.currentNode = node;
+            counter += 1;
           }
         }
       }

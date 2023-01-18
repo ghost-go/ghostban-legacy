@@ -1,3 +1,56 @@
+export declare type ConsumedAnalysis = {
+    results: Analysis[];
+    params: AnalysisParams | null;
+};
+export declare type Analysis = {
+    id: string;
+    isDuringSearch: boolean;
+    moveInfos: MoveInfo[];
+    rootInfo: RootInfo;
+    policy: number[];
+    ownership: number[];
+    turnNumber: number;
+};
+export declare type AnalysisParams = {
+    id: string;
+    initialPlayer: string;
+    moves: any[];
+    rules: string;
+    komi: string;
+    boardXSize: number;
+    boardYSize: number;
+    includePolicy: boolean;
+    priority: number;
+    maxVisits: number;
+};
+export declare type MoveInfo = {
+    isSymmetryOf: string;
+    lcb: number;
+    move: string;
+    order: number;
+    prior: number;
+    pv: string[];
+    scoreLead: number;
+    scoreMean: number;
+    scoreSelfPlay: number;
+    scoreStdev: number;
+    utility: number;
+    utilityLcb: number;
+    visits: number;
+    winrate: number;
+};
+export declare type RootInfo = {
+    currentPlayer: string;
+    lcb: number;
+    scoreLead: number;
+    scoreSelfplay: number;
+    scoreStdev: number;
+    symHash: string;
+    thisHash: string;
+    utility: number;
+    visits: number;
+    winrate: number;
+};
 export declare enum Ki {
     Black = 1,
     White = -1,
@@ -29,17 +82,3 @@ export declare enum Markup {
     Letter = "le",
     None = ""
 }
-import { MoveProp, SetupProp, RootProp, NodeAnnotationProp, MoveAnnotationProp, MarkupProp } from './props';
-export declare type SgfNode = {
-    id: string;
-    name: string;
-    attributes: {
-        [key: string]: string;
-    };
-    moveProps: MoveProp[];
-    setupProps: SetupProp[];
-    rootProps: RootProp[];
-    markupProps: MarkupProp[];
-    nodeAnnotationProps: NodeAnnotationProp[];
-    moveAnnotationProps: MoveAnnotationProp[];
-};

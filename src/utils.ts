@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import cloneDeep from 'lodash/cloneDeep';
+import {cloneDeep} from 'lodash';
 import {sgfToPos} from './helper';
 import {Center} from './types';
 
@@ -42,6 +42,99 @@ export const calcCenter = (mat: number[][], boardSize = 19) => {
   if (top && !left) return Center.TopRight;
   if (!top && !left) return Center.BottomRight;
   return Center.Center;
+};
+
+export const calcBoardSize = (
+  mat: number[][],
+  boardSize = 19,
+  extend = 2
+): number[] => {
+  const result = [19, 19];
+  const center = calcCenter(mat);
+  const {leftMost, rightMost, topMost, bottomMost} = calcMost(mat, boardSize);
+  if (center === Center.TopLeft) {
+    result[0] = rightMost + extend + 1;
+    result[1] = bottomMost + extend + 1;
+  }
+  if (center === Center.TopRight) {
+    result[0] = boardSize - leftMost + extend;
+    result[1] = bottomMost + extend + 1;
+  }
+  if (center === Center.BottomLeft) {
+    result[0] = rightMost + extend + 1;
+    result[1] = boardSize - topMost + extend;
+  }
+  if (center === Center.BottomRight) {
+    result[0] = boardSize - leftMost + extend;
+    result[1] = boardSize - topMost + extend;
+  }
+
+  return result;
+};
+
+export const calcOffset = (mat: number[][]) => {
+  const boardSize = calcBoardSize(mat);
+  const ox = 19 - boardSize[0];
+  const oy = 19 - boardSize[1];
+  const center = calcCenter(mat);
+
+  let oox = ox;
+  let ooy = oy;
+  switch (center) {
+    case Center.TopLeft: {
+      oox = 0;
+      ooy = oy;
+      break;
+    }
+    case Center.TopRight: {
+      oox = -ox;
+      ooy = oy;
+      break;
+    }
+    case Center.BottomLeft: {
+      oox = 0;
+      ooy = 0;
+      break;
+    }
+    case Center.BottomRight: {
+      oox = -ox;
+      ooy = 0;
+      break;
+    }
+  }
+  return {x: oox, y: ooy};
+};
+
+export const reverseOffset = (mat: number[][], bx = 19, by = 19) => {
+  const ox = 19 - bx;
+  const oy = 19 - by;
+  const center = calcCenter(mat);
+
+  let oox = ox;
+  let ooy = oy;
+  switch (center) {
+    case Center.TopLeft: {
+      oox = 0;
+      ooy = -oy;
+      break;
+    }
+    case Center.TopRight: {
+      oox = ox;
+      ooy = -oy;
+      break;
+    }
+    case Center.BottomLeft: {
+      oox = 0;
+      ooy = 0;
+      break;
+    }
+    case Center.BottomRight: {
+      oox = ox;
+      ooy = 0;
+      break;
+    }
+  }
+  return {x: oox, y: ooy};
 };
 
 export const calcVisibleArea = (

@@ -1,4 +1,5 @@
 export declare const A1_LETTERS: string[];
+export declare const A1_LETTERS_WITH_I: string[];
 export declare const A1_NUMBERS: number[];
 export declare const SGF_LETTERS: string[];
 export declare const BLANK_ARRAY: any[][];

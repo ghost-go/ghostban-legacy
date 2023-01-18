@@ -13,6 +13,7 @@ export default class BwStone extends Stone {
 
   draw() {
     const {ctx, x, y, r, ki} = this;
+    if (r <= 0) return;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 2 * Math.PI, true);
     ctx.lineWidth = 1;

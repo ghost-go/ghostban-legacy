@@ -1,4 +1,4 @@
-import { Theme, Ki } from './types';
+import { Theme, Ki, Analysis } from './types';
 export declare type GhostBanOptions = {
     boardSize: number;
     size?: number;
@@ -8,7 +8,7 @@ export declare type GhostBanOptions = {
     theme: Theme;
     coordinate: boolean;
     interactive: boolean;
-    background?: boolean;
+    background: boolean;
 };
 export declare type GhostBanOptionsParams = {
     boardSize?: number;
@@ -27,6 +27,9 @@ export declare class GhostBan {
     dom: HTMLElement | undefined;
     canvas?: HTMLCanvasElement;
     board?: HTMLCanvasElement;
+    analysisCanvas?: HTMLCanvasElement;
+    cursorCanvas?: HTMLCanvasElement;
+    markupCanvas?: HTMLCanvasElement;
     private _turn;
     cursor: [number, number];
     cursorPos: DOMPoint;
@@ -34,25 +37,37 @@ export declare class GhostBan {
     markup: (string | number)[][];
     maxhv: number;
     transMat: DOMMatrix;
+    analysis: Analysis | null;
+    visibleArea: number[][];
     constructor(options?: GhostBanOptionsParams);
-    getCanvas(): HTMLCanvasElement | undefined;
     setTurn(turn: Ki): void;
     resize(): void;
     init(dom: HTMLElement): void;
     setOptions(options: GhostBanOptionsParams): void;
+    setMat(mat: number[][]): void;
+    setMarkup(markup: string[][]): void;
     renderInteractive(): void;
+    setAnalysis(analysis: Analysis | null): void;
     setTheme(theme: Theme): void;
-    render(mat?: number[][], markup?: (string | number)[][]): void;
+    calcBoardVisibleArea(zoom: boolean): void;
+    render(): void;
+    clearAllCanvas: () => void;
+    clearBoard: () => void;
     clearCanvas: () => void;
-    drawMarkup: (mat: number[][], markup: (string | number)[][]) => void;
+    clearMarkupCanvas: () => void;
+    clearCursorCanvas: () => void;
+    clearAnalysisCanvas: () => void;
+    drawAnalysis: (analysis: Analysis) => void;
+    drawMarkup: (mat?: number[][], markup?: (string | number)[][]) => void;
+    drawBoard: () => void;
     drawBan: () => void;
-    drawBoardLine: (visibleArea?: number[][]) => void;
+    drawBoardLine: () => void;
     drawStars: (visibleArea?: number[][]) => void;
     drawCoordinate: (visibleArea?: number[][]) => void;
-    calcSpaceAndPadding: () => {
+    calcSpaceAndPadding: (canvas?: HTMLCanvasElement | undefined) => {
         space: number;
         scaledPadding: number;
     };
-    drawCursor: (visibleArea: number[][]) => void;
-    drawStones: (matrix: number[][]) => void;
+    drawCursor: () => void;
+    drawStones: (mat?: number[][]) => void;
 }

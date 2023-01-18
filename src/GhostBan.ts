@@ -1,12 +1,18 @@
-import _ from 'lodash';
+import {compact} from 'lodash';
 import {A1_LETTERS, A1_NUMBERS, RESOURCES} from './const';
-import {Theme, Ki} from './types';
+import {Theme, Ki, Analysis} from './types';
 import {zeros, empty} from './utils';
 
 import {Center, Markup} from './types';
-import {calcVisibleArea} from './utils';
+import {calcVisibleArea, reverseOffset} from './utils';
 import {ImageStone} from './stones';
 import BwStone from './stones/bwStone';
+import AnalysisPoint from './stones/AnalysisPoint';
+import {create, meanDependencies, stdDependencies} from 'mathjs';
+
+const config = {};
+const {std, mean} = create({meanDependencies, stdDependencies}, config);
+
 import {
   CircleMarkup,
   CrossMarkup,
@@ -14,6 +20,7 @@ import {
   SquareMarkup,
   TriangleMarkup,
 } from './markups';
+import {a1ToPos} from './helper';
 
 // const devicePixelRatio = window.devicePixelRatio;
 let devicePixelRatio = 1.0;
@@ -57,7 +64,7 @@ export type GhostBanOptions = {
   theme: Theme;
   coordinate: boolean;
   interactive: boolean;
-  background?: boolean;
+  background: boolean;
 };
 
 export type GhostBanOptionsParams = {
@@ -76,16 +83,19 @@ export class GhostBan {
   defaultOptions: GhostBanOptions = {
     boardSize: 19,
     padding: 10,
-    extend: 2,
+    extend: 3,
     interactive: false,
     coordinate: true,
-    background: false,
     theme: Theme.BlackAndWhite,
+    background: false,
   };
   options: GhostBanOptions;
   dom: HTMLElement | undefined;
   canvas?: HTMLCanvasElement;
   board?: HTMLCanvasElement;
+  analysisCanvas?: HTMLCanvasElement;
+  cursorCanvas?: HTMLCanvasElement;
+  markupCanvas?: HTMLCanvasElement;
   private _turn: Ki;
   cursor: [number, number];
   cursorPos: DOMPoint;
@@ -93,6 +103,8 @@ export class GhostBan {
   markup: (string | number)[][];
   maxhv: number;
   transMat: DOMMatrix;
+  analysis: Analysis | null;
+  visibleArea: number[][];
 
   constructor(options: GhostBanOptionsParams = {}) {
     this.options = {
@@ -106,10 +118,11 @@ export class GhostBan {
     this.cursorPos = new DOMPoint();
     this.maxhv = this.options.boardSize;
     this.transMat = new DOMMatrix();
-  }
-
-  getCanvas() {
-    return this.canvas;
+    this.analysis = null;
+    this.visibleArea = [
+      [0, 18],
+      [0, 18],
+    ];
   }
 
   setTurn(turn: Ki) {
@@ -117,52 +130,102 @@ export class GhostBan {
   }
 
   resize() {
-    if (!this.canvas || !this.dom || !this.board) return;
-    const {canvas, board} = this;
-    const {size} = this.options;
+    if (
+      !this.canvas ||
+      !this.cursorCanvas ||
+      !this.dom ||
+      !this.board ||
+      !this.markupCanvas ||
+      !this.analysisCanvas
+    )
+      return;
+    const {board, canvas, markupCanvas, cursorCanvas, analysisCanvas} = this;
+    const {size, zoom} = this.options;
     if (size) {
-      canvas.width = size * devicePixelRatio;
-      canvas.height = size * devicePixelRatio;
       board.width = size * devicePixelRatio;
       board.height = size * devicePixelRatio;
+      canvas.width = size * devicePixelRatio;
+      canvas.height = size * devicePixelRatio;
+      markupCanvas.width = size * devicePixelRatio;
+      markupCanvas.height = size * devicePixelRatio;
+      cursorCanvas.width = size * devicePixelRatio;
+      cursorCanvas.height = size * devicePixelRatio;
+      analysisCanvas.width = size * devicePixelRatio;
+      analysisCanvas.height = size * devicePixelRatio;
     } else {
       const {clientWidth} = this.dom;
-      canvas.style.width = clientWidth + 'px';
-      canvas.style.height = clientWidth + 'px';
-      canvas.width = Math.floor(clientWidth * devicePixelRatio);
-      canvas.height = Math.floor(clientWidth * devicePixelRatio);
       board.style.width = clientWidth + 'px';
       board.style.height = clientWidth + 'px';
       board.width = Math.floor(clientWidth * devicePixelRatio);
       board.height = Math.floor(clientWidth * devicePixelRatio);
+      canvas.style.width = clientWidth + 'px';
+      canvas.style.height = clientWidth + 'px';
+      canvas.width = Math.floor(clientWidth * devicePixelRatio);
+      canvas.height = Math.floor(clientWidth * devicePixelRatio);
+      markupCanvas.style.width = clientWidth + 'px';
+      markupCanvas.style.height = clientWidth + 'px';
+      markupCanvas.width = Math.floor(clientWidth * devicePixelRatio);
+      markupCanvas.height = Math.floor(clientWidth * devicePixelRatio);
+      cursorCanvas.style.width = clientWidth + 'px';
+      cursorCanvas.style.height = clientWidth + 'px';
+      cursorCanvas.width = Math.floor(clientWidth * devicePixelRatio);
+      cursorCanvas.height = Math.floor(clientWidth * devicePixelRatio);
+      analysisCanvas.style.width = clientWidth + 'px';
+      analysisCanvas.style.height = clientWidth + 'px';
+      analysisCanvas.width = Math.floor(clientWidth * devicePixelRatio);
+      analysisCanvas.height = Math.floor(clientWidth * devicePixelRatio);
     }
+    this.calcBoardVisibleArea(zoom || false);
+    this.render();
   }
 
   init(dom: HTMLElement) {
     this.mat = zeros([19, 19]);
     this.markup = empty([19, 19]);
     this.transMat = new DOMMatrix();
+
     const board = document.createElement('canvas');
     board.style.position = 'absolute';
+    board.id = 'ghostban-board';
     this.board = board;
 
     const canvas = document.createElement('canvas');
     canvas.style.position = 'absolute';
+    canvas.id = 'ghostban-canvas';
     this.canvas = canvas;
+
+    const markupCanvas = document.createElement('canvas');
+    markupCanvas.style.position = 'absolute';
+    markupCanvas.id = 'ghostban-markup';
+    markupCanvas.style.pointerEvents = 'none';
+    this.markupCanvas = markupCanvas;
+
+    const cursorCanvas = document.createElement('canvas');
+    cursorCanvas.style.position = 'absolute';
+    cursorCanvas.id = 'ghostban-cursor';
+    this.cursorCanvas = cursorCanvas;
+
+    const analysisCanvas = document.createElement('canvas');
+    analysisCanvas.style.position = 'absolute';
+    analysisCanvas.style.pointerEvents = 'none';
+    analysisCanvas.id = 'ghostban-analysis';
+    this.analysisCanvas = analysisCanvas;
+
     this.dom = dom;
 
-    // const ctx = canvas.getContext('2d');
-    // if (ctx) {
-    //   ctx.imageSmoothingQuality = 'high';
-    // }
-
-    this.resize();
+    dom.firstChild?.remove();
+    dom.firstChild?.remove();
+    dom.firstChild?.remove();
     dom.firstChild?.remove();
     dom.firstChild?.remove();
 
     dom.appendChild(board);
     dom.appendChild(canvas);
+    dom.appendChild(markupCanvas);
+    dom.appendChild(cursorCanvas);
+    dom.appendChild(analysisCanvas);
 
+    this.resize();
     this.renderInteractive();
   }
 
@@ -170,8 +233,16 @@ export class GhostBan {
     this.options = {...this.options, ...options};
   }
 
+  setMat(mat: number[][]) {
+    this.mat = mat;
+  }
+
+  setMarkup(markup: string[][]) {
+    this.markup = markup;
+  }
+
   renderInteractive() {
-    const canvas = this.canvas;
+    const canvas = this.cursorCanvas;
     if (!canvas) return;
     const {padding} = this.options;
     const {space} = this.calcSpaceAndPadding();
@@ -185,7 +256,7 @@ export class GhostBan {
       const p = this.transMat.transformPoint(new DOMPoint(xx, yy));
       this.cursorPos = p;
       this.cursor = [idx - 1, idy - 1];
-      this.render(this.mat, this.markup);
+      this.drawCursor();
     };
     const onTouchMove = (e: TouchEvent) => {
       e.preventDefault();
@@ -205,127 +276,299 @@ export class GhostBan {
       );
       setCursorWithRender(point);
     };
+
     if (this.options.interactive) {
       canvas.addEventListener('mousemove', onMouseMove);
       canvas.addEventListener('touchmove', onTouchMove);
+      canvas.addEventListener('mouseout', onMouseMove);
     } else {
       canvas.removeEventListener('mousemove', onMouseMove);
       canvas.removeEventListener('touchmove', onTouchMove);
+      canvas.removeEventListener('mouseout', onMouseMove);
     }
   }
 
-  setTheme(theme: Theme) {
-    const {board, blacks, whites} = RESOURCES[theme];
-    preload(_.compact([board, ...blacks, ...whites]), () => {
-      const shadowStyle = '3px 3px 3px #aaaaaa';
-      const canvas = this.canvas;
-      if (canvas) {
-        this.options.theme = theme;
-        if (theme === Theme.BlackAndWhite) {
-          canvas.style.boxShadow = '0px 0px 0px #000000';
-        } else if (theme === Theme.Flat) {
-          canvas.style.boxShadow = shadowStyle;
-        }
-        setTimeout(() => {
-          this.render(this.mat, this.markup);
-        }, 0);
-      }
-    });
+  setAnalysis(analysis: Analysis | null) {
+    if (!analysis) return;
+    this.analysis = analysis;
     setTimeout(() => {
-      this.options.theme = theme;
-      this.render(this.mat, this.markup);
+      this.drawAnalysis(analysis);
     }, 0);
   }
 
-  render(mat?: number[][], markup?: (string | number)[][]) {
-    if (mat) this.mat = mat;
-    if (markup) this.markup = markup;
-    const {boardSize, zoom, extend, interactive, coordinate} = this.options;
-    const canvas = this.canvas;
-    if (canvas) {
-      this.resize();
-      this.clearCanvas();
-      const ctx = canvas.getContext('2d');
-      if (ctx && this.options.background) {
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-
-      const {visibleArea: zoomedVisibleArea, center} = calcVisibleArea(
-        this.mat,
-        boardSize,
-        extend
-      );
-      const visibleArea = zoom
-        ? zoomedVisibleArea
-        : [
-            [0, 18],
-            [0, 18],
-          ];
-
-      if (zoom && ctx) {
-        const {space} = this.calcSpaceAndPadding();
-        const zoomedBoardSize = visibleArea[0][1] - visibleArea[0][0] + 1;
-        const scale = 1 / (zoomedBoardSize / boardSize);
-
-        let offsetX = 0;
-        let offsetY = 0;
-        switch (center) {
-          case Center.TopLeft:
-            break;
-          case Center.TopRight:
-            offsetX =
-              visibleArea[0][0] * space * scale +
-              (this.options.padding / 2) * scale;
-            break;
-          case Center.BottomLeft:
-            offsetY =
-              visibleArea[1][0] * space * scale +
-              (this.options.padding / 2) * scale;
-            break;
-          case Center.BottomRight:
-            offsetX =
-              visibleArea[0][0] * space * scale +
-              (this.options.padding / 2) * scale;
-            offsetY =
-              visibleArea[1][0] * space * scale +
-              (this.options.padding / 2) * scale;
-            break;
-        }
-        this.transMat = new DOMMatrix();
-        this.transMat.translateSelf(-offsetX, -offsetY);
-        this.transMat.scaleSelf(scale, scale);
-        ctx.setTransform(this.transMat);
-      }
-
-      this.drawBan();
-      this.drawBoardLine(visibleArea);
-      this.drawStars(visibleArea);
-      if (interactive) {
-        this.drawCursor(visibleArea);
-      }
-      if (coordinate) {
-        this.drawCoordinate(visibleArea);
-      }
-      this.drawStones(mat ?? this.mat);
-      this.drawMarkup(mat ?? this.mat, markup ?? this.markup);
-      // ctx?.restore();
-    }
+  setTheme(theme: Theme) {
+    if (!RESOURCES[theme]) return;
+    const {board, blacks, whites} = RESOURCES[theme];
+    this.options.theme = theme;
+    preload(compact([board, ...blacks, ...whites]), () => {
+      this.drawBoard();
+      this.render();
+    });
+    this.drawBoard();
+    this.render();
   }
 
-  clearCanvas = () => {
-    if (this.canvas) {
-      const ctx = this.canvas.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  calcBoardVisibleArea(zoom: boolean) {
+    const {canvas, analysisCanvas, board, cursorCanvas, markupCanvas} = this;
+    const {boardSize, extend} = this.options;
+    const {visibleArea: zoomedVisibleArea, center} = calcVisibleArea(
+      this.mat,
+      boardSize,
+      extend
+    );
+    const ctx = canvas?.getContext('2d');
+    const boardCtx = board?.getContext('2d');
+    const cursorCtx = cursorCanvas?.getContext('2d');
+    const markupCtx = markupCanvas?.getContext('2d');
+    const analysisCtx = analysisCanvas?.getContext('2d');
+    const visibleArea = zoom
+      ? zoomedVisibleArea
+      : [
+          [0, 18],
+          [0, 18],
+        ];
+
+    this.visibleArea = visibleArea;
+
+    if (zoom) {
+      const {space} = this.calcSpaceAndPadding();
+      const zoomedBoardSize = visibleArea[0][1] - visibleArea[0][0] + 1;
+      const scale = 1 / (zoomedBoardSize / boardSize);
+
+      let offsetX = 0;
+      let offsetY = 0;
+
+      // const offset = this.options.padding;
+      const offset = this.options.padding * scale;
+      switch (center) {
+        case Center.TopLeft:
+          break;
+        case Center.TopRight:
+          offsetX = visibleArea[0][0] * space * scale + offset;
+          break;
+        case Center.BottomLeft:
+          offsetY = visibleArea[1][0] * space * scale + offset;
+          break;
+        case Center.BottomRight:
+          offsetX = visibleArea[0][0] * space * scale + offset;
+          offsetY = visibleArea[1][0] * space * scale + offset;
+          break;
       }
+      this.transMat = new DOMMatrix();
+      this.transMat.translateSelf(-offsetX, -offsetY);
+      this.transMat.scaleSelf(scale, scale);
+      ctx?.setTransform(this.transMat);
+      boardCtx?.setTransform(this.transMat);
+      analysisCtx?.setTransform(this.transMat);
+      cursorCtx?.setTransform(this.transMat);
+      markupCtx?.setTransform(this.transMat);
+    } else {
+      ctx?.resetTransform();
+      boardCtx?.resetTransform();
+      analysisCtx?.resetTransform();
+      cursorCtx?.resetTransform();
+      markupCtx?.resetTransform();
+    }
+  }
+  render() {
+    this.clearAllCanvas();
+    this.drawBoard();
+    this.drawStones();
+    this.drawMarkup();
+  }
+
+  clearAllCanvas = () => {
+    this.clearBoard();
+    this.clearCanvas();
+    this.clearCursorCanvas();
+    this.clearAnalysisCanvas();
+  };
+
+  clearBoard = () => {
+    if (!this.board) return;
+    const ctx = this.board.getContext('2d');
+    if (ctx) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      // Will always clear the right space
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.restore();
     }
   };
 
-  drawMarkup = (mat: number[][], markup: (string | number)[][]) => {
+  clearCanvas = () => {
+    if (!this.canvas) return;
+    const ctx = this.canvas.getContext('2d');
+    if (ctx) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      ctx.restore();
+    }
+  };
+
+  clearMarkupCanvas = () => {
+    if (!this.markupCanvas) return;
+    const ctx = this.markupCanvas.getContext('2d');
+    if (ctx) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, this.markupCanvas.width, this.markupCanvas.height);
+      ctx.restore();
+    }
+  };
+
+  clearCursorCanvas = () => {
+    if (!this.cursorCanvas) return;
+    const ctx = this.cursorCanvas.getContext('2d');
+    if (ctx) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, this.cursorCanvas.width, this.cursorCanvas.height);
+      ctx.restore();
+    }
+  };
+
+  clearAnalysisCanvas = () => {
+    if (!this.analysisCanvas) return;
+    const ctx = this.analysisCanvas.getContext('2d');
+    if (ctx) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(
+        0,
+        0,
+        this.analysisCanvas.width,
+        this.analysisCanvas.height
+      );
+      ctx.restore();
+    }
+  };
+
+  drawAnalysis = (analysis: Analysis) => {
+    const canvas = this.analysisCanvas;
+    const {theme = Theme.BlackAndWhite} = this.options;
+    if (!canvas || !analysis) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    this.clearAnalysisCanvas();
+    const {rootInfo} = analysis;
+
+    const uts = analysis.moveInfos.map(m => m.utility);
+    const utsZ = uts.map(v => {
+      return (v - mean(uts)) / std(...uts);
+    });
+
+    const utsNorm = utsZ.map(v => {
+      const max = Math.max(...uts);
+      const min = Math.min(...uts);
+      return (v - min) / (max - min);
+    });
+
+    analysis.moveInfos.forEach((m, index) => {
+      if (m.move === 'pass') return;
+      const idObj = JSON.parse(analysis.id);
+      const {x: ox, y: oy} = reverseOffset(this.mat, idObj.bx, idObj.by);
+      let {x: i, y: j} = a1ToPos(m.move);
+      i += ox;
+      j += oy;
+      if (this.mat[i][j] !== 0) return;
+      const {space, scaledPadding} = this.calcSpaceAndPadding();
+      const x = scaledPadding + i * space;
+      const y = scaledPadding + j * space;
+      const ratio = 0.46;
+      ctx.save();
+      if (
+        theme !== Theme.Subdued &&
+        theme !== Theme.BlackAndWhite &&
+        theme !== Theme.Flat
+      ) {
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 3;
+        ctx.shadowColor = '#555';
+        ctx.shadowBlur = 8;
+      } else {
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowColor = '#fff';
+        ctx.shadowBlur = 0;
+      }
+      const stone = new AnalysisPoint(
+        ctx,
+        x,
+        y,
+        space * ratio,
+        rootInfo,
+        m,
+        utsNorm[index],
+        true
+      );
+      stone.draw();
+      ctx.restore();
+    });
+
+    // for (let i = 0; i < matrix.length; i++) {
+    //   for (let j = 0; j < matrix[i].length; j++) {
+    //     const value = matrix[i][j];
+    //     if (value !== 0) {
+    //       const ctx = canvas.getContext('2d');
+    //       if (ctx) {
+    //         const {space, scaledPadding} = this.calcSpaceAndPadding();
+    //         const x = scaledPadding + i * space;
+    //         const y = scaledPadding + j * space;
+
+    //         const ratio = 0.46;
+    //         ctx.save();
+    //         if (
+    //           theme !== Theme.Subdued &&
+    //           theme !== Theme.BlackAndWhite &&
+    //           theme !== Theme.Flat
+    //         ) {
+    //           ctx.shadowOffsetX = 3;
+    //           ctx.shadowOffsetY = 3;
+    //           ctx.shadowColor = '#555';
+    //           ctx.shadowBlur = 8;
+    //         }
+    //         let stone;
+    //         switch (theme) {
+    //           case Theme.BlackAndWhite:
+    //           case Theme.Flat: {
+    //             stone = new BwStone(ctx, x, y, space * ratio, value);
+    //             break;
+    //           }
+    //           default: {
+    //             const blacks = RESOURCES[theme].blacks.map(i => images[i]);
+    //             const whites = RESOURCES[theme].whites.map(i => images[i]);
+    //             const r = space * ratio;
+    //             const mod = i + 10 + j;
+    //             stone = new ImageStone(
+    //               ctx,
+    //               x,
+    //               y,
+    //               r,
+    //               value,
+    //               mod,
+    //               blacks,
+    //               whites
+    //             );
+    //           }
+    //         }
+    //         stone.draw();
+    //         ctx.restore();
+    //       }
+    //     }
+    //   }
+    // }
+  };
+
+  drawMarkup = (
+    mat: number[][] = this.mat,
+    markup: (string | number)[][] = this.markup
+  ) => {
     // console.log('markup', markup);
-    const canvas = this.canvas;
+    const canvas = this.markupCanvas;
     if (canvas) {
+      this.clearMarkupCanvas();
       for (let i = 0; i < markup.length; i++) {
         for (let j = 0; j < markup[i].length; j++) {
           const value = markup[i][j];
@@ -370,6 +613,16 @@ export class GhostBan {
     }
   };
 
+  drawBoard = () => {
+    this.clearBoard();
+    this.drawBan();
+    this.drawBoardLine();
+    this.drawStars();
+    if (this.options.coordinate) {
+      this.drawCoordinate();
+    }
+  };
+
   drawBan = () => {
     const {board} = this;
     const {theme} = this.options;
@@ -379,6 +632,8 @@ export class GhostBan {
       if (ctx) {
         if (theme === Theme.BlackAndWhite) {
           board.style.boxShadow = '0px 0px 0px #000000';
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, board.width, board.height);
         } else if (theme === Theme.Flat) {
           ctx.fillStyle = '#ECB55A';
           ctx.fillRect(0, 0, board.width, board.height);
@@ -406,14 +661,11 @@ export class GhostBan {
     }
   };
 
-  drawBoardLine = (
-    visibleArea = [
-      [0, 18],
-      [0, 18],
-    ]
-  ) => {
-    if (!this.canvas) return;
-    const ctx = this.canvas.getContext('2d');
+  drawBoardLine = () => {
+    if (!this.board) return;
+
+    const {visibleArea} = this;
+    const ctx = this.board.getContext('2d');
     if (ctx) {
       const {space, scaledPadding} = this.calcSpaceAndPadding();
 
@@ -487,9 +739,9 @@ export class GhostBan {
       [0, 18],
     ]
   ) => {
-    const canvas = this.canvas;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const board = this.board;
+    if (!board) return;
+    const ctx = board.getContext('2d');
     const {space, scaledPadding} = this.calcSpaceAndPadding();
     if (ctx) {
       ctx.textBaseline = 'middle';
@@ -502,38 +754,40 @@ export class GhostBan {
         const x = space * index + scaledPadding;
         if (index >= visibleArea[0][0] && index <= visibleArea[0][1]) {
           ctx.fillText(l, x, 0 + offset);
-          ctx.fillText(l, x, canvas.height - offset);
+          ctx.fillText(l, x, board.height - offset);
         }
       });
       A1_NUMBERS.forEach((l: number, index) => {
         const y = space * index + scaledPadding;
         if (index >= visibleArea[1][0] && index <= visibleArea[1][1]) {
           ctx.fillText(l.toString(), offset, y);
-          ctx.fillText(l.toString(), canvas.width - offset, y);
+          ctx.fillText(l.toString(), board.width - offset, y);
         }
       });
     }
   };
 
-  calcSpaceAndPadding = () => {
+  calcSpaceAndPadding = (canvas = this.canvas) => {
     let space = 0;
     let scaledPadding = 0;
-    if (this.canvas) {
+    if (canvas) {
       const {padding, boardSize} = this.options;
       // scaledPadding = padding * devicePixelRatio;
       scaledPadding = padding;
-      space = (this.canvas.width - padding * 2) / boardSize;
+      space = (canvas.width - padding * 2) / boardSize;
       scaledPadding = scaledPadding + space / 2;
     }
     return {space, scaledPadding};
   };
 
-  drawCursor = (visibleArea: number[][]) => {
-    const canvas = this.canvas;
+  drawCursor = () => {
+    const canvas = this.cursorCanvas;
     if (canvas) {
+      this.clearCursorCanvas();
       const {padding} = this.options;
       const ctx = canvas.getContext('2d');
       const {space} = this.calcSpaceAndPadding();
+      const {visibleArea} = this;
 
       const [idx, idy] = this.cursor;
       if (idx < visibleArea[0][0] || idx > visibleArea[0][1]) return;
@@ -565,13 +819,13 @@ export class GhostBan {
     }
   };
 
-  drawStones = (matrix: number[][]) => {
+  drawStones = (mat: number[][] = this.mat) => {
     const canvas = this.canvas;
     const {theme = Theme.BlackAndWhite} = this.options;
     if (canvas) {
-      for (let i = 0; i < matrix.length; i++) {
-        for (let j = 0; j < matrix[i].length; j++) {
-          const value = matrix[i][j];
+      for (let i = 0; i < mat.length; i++) {
+        for (let j = 0; j < mat[i].length; j++) {
+          const value = mat[i][j];
           if (value !== 0) {
             const ctx = canvas.getContext('2d');
             if (ctx) {
@@ -579,7 +833,7 @@ export class GhostBan {
               const x = scaledPadding + i * space;
               const y = scaledPadding + j * space;
 
-              const ratio = 0.46;
+              const ratio = 0.45;
               ctx.save();
               if (
                 theme !== Theme.Subdued &&
@@ -590,6 +844,10 @@ export class GhostBan {
                 ctx.shadowOffsetY = 3;
                 ctx.shadowColor = '#555';
                 ctx.shadowBlur = 8;
+              } else {
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+                ctx.shadowBlur = 0;
               }
               let stone;
               switch (theme) {

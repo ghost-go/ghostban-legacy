@@ -8,6 +8,15 @@ export declare const calcMost: (mat: number[][], boardSize?: number) => {
     bottomMost: number;
 };
 export declare const calcCenter: (mat: number[][], boardSize?: number) => Center;
+export declare const calcBoardSize: (mat: number[][], boardSize?: number, extend?: number) => number[];
+export declare const calcOffset: (mat: number[][]) => {
+    x: number;
+    y: number;
+};
+export declare const reverseOffset: (mat: number[][], bx?: number, by?: number) => {
+    x: number;
+    y: number;
+};
 export declare const calcVisibleArea: (mat: number[][], boardSize?: number, extend?: number) => {
     visibleArea: number[][];
     center: Center;
